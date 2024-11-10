@@ -1,7 +1,7 @@
 public class ListTransactionsCommand : Command
 {
     // Lists all transactions in TransactionManager transactions five at a time at default.
-    // Then listens for escape press to stop listing. If logged in as admin, shows deleted transactions as well.
+    // Then listens for escape press to stop listing. If logged in as admin or debug, shows deleted transactions as well.
     public ListTransactionsCommand(Program program)
         : base("List", "Shows all transactions.", program) { }
 

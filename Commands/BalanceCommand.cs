@@ -6,6 +6,8 @@ public class BalanceCommand : Command
     public override void Execute(string[] commandArgs)
     {
         var transactionManager = program.TransactionManager;
+
+        // Should have made a function to get transactions.Count from manager.
         var transactions = transactionManager.GetAllTransactions();
         var balance = transactionManager.GetTotal();
         Console.WriteLine(

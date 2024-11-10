@@ -1,8 +1,6 @@
 public class LoginCommand : Command
 {
-    // Just a simple command to switch menu between user and admin.
-    // Disregards second string and checks if third string is "pass"
-    // to login as admin for simplicity.
+    // Just a simple command to switch menu between user, admin and debug.
 
     public LoginCommand(Program program)
         : base("Login", "Type 'login admin' or 'login debug' for special commands!", program) { }

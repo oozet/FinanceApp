@@ -1,6 +1,6 @@
-// Detta är en klass och inte ett interface för att
-// jag vill spara kommandon som en lista (för varje meny).
-// (Interfaces kan inte ha variabler)
+// Not an interface to have Exit and LoginCommand for all menus and hardcoded HelpCommand.
+// Could have used interface and a default menu that all other menus inherited from.
+
 using System.Text;
 
 public abstract class Menu
