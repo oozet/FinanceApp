@@ -73,15 +73,4 @@ public class FileTransactionManager : TransactionManager, ITransactionManager
         base.Populate(count);
         SaveToFile();
     }
-
-    /*
-    Hoppade över async för tillfället
-    private async Task ReadFromFileAsync()
-    {
-        using FileStream openStream = File.OpenRead(filePath);
-        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-        transactions =
-            await JsonSerializer.DeserializeAsync<List<TransactionEntry>>(openStream, options)
-            ?? new List<TransactionEntry>();
-    }*/
 }

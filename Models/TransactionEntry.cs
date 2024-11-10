@@ -2,6 +2,8 @@ using System;
 
 public class TransactionEntry
 {
+    // Yes I know about Guid. Used int because of smaller size.
+    // All data is local and the application is for a single user.
     public int Uid { get; set; }
     public DateTime Date { get; set; }
     public TransactionType Type { get; set; }
@@ -22,7 +24,10 @@ public class TransactionEntry
     {
         // Don't show deleted transactions to user.
         if (DeletedAt != null)
+        {
             return;
+        }
+
         Console.WriteLine(ToString());
     }
 }

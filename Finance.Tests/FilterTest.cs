@@ -9,7 +9,6 @@ public class FilterTest
     {
         // Arrange
         Program program = new Program();
-        TransactionManager transactionManager = new TransactionManager();
         program.TransactionManager = new TransactionManager();
         FilterTransactionsService filterTransactionsService = new FilterTransactionsService(
             program
