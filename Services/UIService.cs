@@ -21,11 +21,21 @@ public class UIService
         Console.WriteLine(finance);
     }
 
-    public static void DisplayUserInfo()
+    public static void DisplayNoUserInfo()
     {
         Console.WriteLine(
             """
-               Welcome to your personal finance application. Type help for further assistance.
+               You need to log in to use the service. Type Login 'username' 'password to login
+               or Create 'username' to create a new user.
+            """
+        );
+    }
+
+    public static void DisplayUserInfo(User currentUser)
+    {
+        Console.WriteLine(
+            $"""
+               Welcome {currentUser.Username} to your personal finance application. Type help for further assistance.
             -------------------------------------------------------------------------------------
                             | Deposit | Withdraw | Balance | Filter | List |     
             -------------------------------------------------------------------------------------

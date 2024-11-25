@@ -5,8 +5,22 @@ public class LoginCommand : Command
     public LoginCommand(Program program)
         : base("Login", "Type 'login admin' or 'login debug' for special commands!", program) { }
 
-    public override void Execute(string[] commandArgs)
+    public override async void Execute(string[] commandArgs)
     {
+        if (commandArgs.Length < 3)
+        {
+            Console.WriteLine("Usage: 'login username password'");
+            return;
+        }
+
+        string username = commandArgs[1];
+        string password = commandArgs[2];
+        if (!await program.AppDbContext.SetUser(username, password))
+        {
+            Console.WriteLine("Invalid username or password.");
+            return;
+        }
+
         if (commandArgs[1].Equals("debug"))
         {
             program.MenuManager.SetMenu(new DebugMenu(program));

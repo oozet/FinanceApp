@@ -12,7 +12,6 @@ public abstract class Menu
     {
         this.program = program;
         AddCommand(new ExitCommand(program));
-        AddCommand(new LoginCommand(program));
     }
 
     protected void AddCommand(Command command)
@@ -39,16 +38,18 @@ public abstract class Menu
 
         foreach (Command command in commands)
         {
-            if (command.Name.Equals(commandName, StringComparison.OrdinalIgnoreCase))
+            if (!command.Name.Equals(commandName, StringComparison.OrdinalIgnoreCase))
             {
-                try
-                {
-                    command.Execute(commandArgs);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
+                continue;
+            }
+
+            try
+            {
+                command.Execute(commandArgs);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
         }
     }

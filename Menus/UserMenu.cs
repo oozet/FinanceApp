@@ -4,6 +4,7 @@ public class UserMenu : Menu
         : base(program)
     {
         // AddCommand() in baseclass 'Menu'.
+        AddCommand(new LogoutCommand(program));
         AddCommand(new DepositCommand(program));
         AddCommand(new WithdrawCommand(program));
         AddCommand(new BalanceCommand(program));
@@ -14,6 +15,6 @@ public class UserMenu : Menu
     public override void Display()
     {
         UIService.DisplayLogo();
-        UIService.DisplayUserInfo();
+        UIService.DisplayUserInfo(program.AppDbContext.currentUser!);
     }
 }

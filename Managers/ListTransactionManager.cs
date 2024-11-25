@@ -27,7 +27,7 @@ public class TransactionManager : ITransactionManager
             Uid = UidCounter,
             Date = DateTime.Now,
             Type = type,
-            Amount = amount,
+            AmountInMinorUnit = (long)(amount * 10),
         };
 
         AddTransaction(entry);
@@ -87,19 +87,19 @@ public class TransactionManager : ITransactionManager
                 {
                     Uid = UidCounter,
                     Type = transactionType,
-                    Amount = (float)random.Next(1, 10000),
+                    AmountInMinorUnit = random.Next(100, 1000000),
                     Date = randomDate,
                 };
 
             // Get some larger amounts.
             if (i % 13 == 0)
             {
-                entry.Amount = (float)random.Next(1000, 100000);
+                entry.AmountInMinorUnit = random.Next(100000, 10000000);
             }
             // Get some decimal values.
             if (i % 20 == 0)
             {
-                entry.Amount += (float)random.Next(0, 100) / 100;
+                entry.AmountInMinorUnit += random.Next(0, 100);
             }
 
             // Mark every 95th entry as Deleted.

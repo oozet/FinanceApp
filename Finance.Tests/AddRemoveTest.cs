@@ -11,7 +11,7 @@ public class AddRemoveTest
         var transaction = new TransactionEntry
         {
             Date = DateTime.Now,
-            Amount = 100,
+            AmountInMinorUnit = 10000,
             Uid = transactionManager.UidCounter,
             Type = TransactionType.Deposit,
         };
@@ -27,7 +27,7 @@ public class AddRemoveTest
         var transaction = new TransactionEntry
         {
             Date = DateTime.Now,
-            Amount = 100,
+            AmountInMinorUnit = 10000,
             Uid = transactionManager.UidCounter,
             Type = TransactionType.Deposit,
         };
@@ -48,7 +48,7 @@ public class AddRemoveTest
         var transaction = new TransactionEntry
         {
             Date = DateTime.Now,
-            Amount = 100,
+            AmountInMinorUnit = 10000,
             Uid = transactionManager.UidCounter,
             Type = TransactionType.Deposit,
         };

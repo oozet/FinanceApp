@@ -1,13 +1,17 @@
 ﻿public class Program
 {
     public ITransactionManager TransactionManager { get; set; }
+    public AppDbContext AppDbContext { get; set; }
 
     public MenuManager MenuManager { get; set; }
     public bool running = true;
 
     public Program()
     {
-        this.MenuManager = new MenuManager(new UserMenu(this));
+        string connectionString =
+            "Host=localhost;Username=postgres;Password=password;Database=exercises";
+        this.AppDbContext = new AppDbContext(connectionString);
+        this.MenuManager = new MenuManager(new NoUserMenu(this));
         this.TransactionManager = new FileTransactionManager();
     }
 
@@ -15,6 +19,7 @@
     {
         Program program = new Program();
         program.TransactionManager.OnProgramLoad();
+        DatabaseService.EnsureTablesExists(program.AppDbContext);
 
         while (program.running)
         {
@@ -23,3 +28,15 @@
         }
     }
 }
+
+// Without hardcoding the connectionstring
+// using Microsoft.Extensions.Configuration;
+
+// // Build configuration
+// var configuration = new ConfigurationBuilder()
+//     .SetBasePath(Directory.GetCurrentDirectory())
+//     .AddJsonFile("appsettings.json")
+//     .Build();
+
+// // Retrieve the connection string
+// string connectionString = configuration.GetConnectionString("DefaultConnection");
