@@ -2,9 +2,10 @@ using System;
 
 public abstract class TransactionBase
 {
-    public DateTime Date { get; set; }
-    public TransactionType Type { get; set; }
+    public DateTime Date { get; init; }
+    public TransactionType Type { get; init; }
     public long AmountInMinorUnit { get; set; }
+    public DateTime CreatedAt { get; init; }
     public DateTime? DeletedAt { get; set; } = null;
     public float Amount
     {
