@@ -21,7 +21,14 @@ CREATE TABLE IF NOT EXISTS persons (
     email VARCHAR(100) UNIQUE NOT NULL 
 );
 
-CREATE TYPE account_type AS ENUM ('Private', 'Savings', 'Business');
+
+-- Check if the enum type exists, and create it if it doesn't
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'account_type') THEN
+        CREATE TYPE account_type AS ENUM ('Private', 'Savings', 'Business');
+    END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS accounts (
     id SERIAL PRIMARY KEY,
@@ -33,7 +40,14 @@ CREATE TABLE IF NOT EXISTS accounts (
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
-CREATE TYPE transaction_type AS ENUM ('Deposit', 'Withdrawal');
+
+-- Check if the enum type exists, and create it if it doesn't
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'transaction_type') THEN
+        CREATE TYPE transaction_type AS ENUM ('Deposit', 'Withdrawal');
+    END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS transactions (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,

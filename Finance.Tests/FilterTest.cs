@@ -9,8 +9,8 @@ public class FilterTest
     {
         // Arrange
         Program program = new Program();
-        program.TransactionManager = new TransactionManager();
-        TransactionManager transactionManager = new TransactionManager();
+        program.TransactionManager = new ListTransactionManager();
+        ListTransactionManager transactionManager = new ListTransactionManager();
         FilterTransactionsService filterTransactionsService = new FilterTransactionsService(
             program
         );
@@ -19,14 +19,14 @@ public class FilterTest
         {
             Date = new DateTime(2022, 1, 1),
             AmountInMinorUnit = 10000,
-            Uid = transactionManager.UidCounter,
+            Uid = Guid.NewGuid(),
             Type = TransactionType.Deposit,
         };
         var transaction2 = new TransactionEntry
         {
             Date = DateTime.Now,
             AmountInMinorUnit = 5000,
-            Uid = transactionManager.UidCounter,
+            Uid = Guid.NewGuid(),
             Type = TransactionType.Withdrawal,
         };
 

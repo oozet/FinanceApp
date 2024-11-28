@@ -15,14 +15,14 @@ public class JsonValidationTest
         {
             Date = DateTime.Now,
             AmountInMinorUnit = 10000,
-            Uid = transactionManager.UidCounter,
+            Uid = Guid.NewGuid(),
             Type = TransactionType.Deposit,
         };
         var transaction2 = new TransactionEntry
         {
             Date = DateTime.Now,
             AmountInMinorUnit = 20000,
-            Uid = transactionManager.UidCounter,
+            Uid = Guid.NewGuid(),
             Type = TransactionType.Withdrawal,
         };
 

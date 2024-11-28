@@ -9,7 +9,7 @@ public abstract class TransactionBase
     public DateTime? DeletedAt { get; set; } = null;
     public float Amount
     {
-        get { return AmountInMinorUnit / 10f; }
+        get { return AmountInMinorUnit / 100f; }
     }
 
     public override string ToString()
@@ -35,7 +35,7 @@ public abstract class TransactionBase
 
 public class TransactionEntry : TransactionBase
 {
-    public int Uid { get; set; }
+    public Guid Uid { get; set; }
 
     public override string ToString()
     {

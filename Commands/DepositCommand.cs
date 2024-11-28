@@ -5,6 +5,7 @@ public class DepositCommand : Command
 
     public override void Execute(string[] commandArgs)
     {
+        var transactionManager = program.TransactionManager;
         if (commandArgs.Length != 2)
         {
             throw new InvalidCommandException("Usage: deposit 'amount'");
@@ -18,6 +19,8 @@ public class DepositCommand : Command
             throw new InvalidNumberException("You can't deposit a negative amount.");
         }
 
-        program.TransactionManager.AddEntry(result, TransactionType.Deposit);
+        transactionManager.AddTransaction(
+            transactionManager.CreateTransaction(result, TransactionType.Deposit)
+        );
     }
 }

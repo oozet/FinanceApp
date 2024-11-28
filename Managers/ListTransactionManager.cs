@@ -1,39 +1,24 @@
 using System.Collections;
 
 // TransactionManager works with the internal List of all transactions.
-public class TransactionManager : ITransactionManager
+public class ListTransactionManager : ITransactionManager
 {
     protected List<TransactionEntry> transactions = new List<TransactionEntry>();
     public int UidCounter { get; set; } = 0;
 
-    // Virtual methods to be able to add functionality to the methods in a derived class.
-    // ------------------------------------------
-
-    // Sets the UidCounter to the highest Uid +1.
-    public virtual void OnProgramLoad()
-    {
-        UidCounter = 0;
-        foreach (TransactionEntry entry in transactions)
-        {
-            if (entry.Uid >= UidCounter)
-                UidCounter = entry.Uid + 1;
-        }
-    }
-
-    public virtual void AddEntry(float amount, TransactionType type)
+    public virtual TransactionEntry CreateTransaction(float amount, TransactionType type)
     {
         TransactionEntry entry = new TransactionEntry
         {
-            Uid = UidCounter,
+            Uid = Guid.NewGuid(),
             Date = DateTime.Now,
             Type = type,
-            AmountInMinorUnit = (long)(amount * 10),
+            AmountInMinorUnit = (long)(amount * 100),
         };
 
-        AddTransaction(entry);
+        return entry;
     }
 
-    // Added step for testing to work.
     public virtual void AddTransaction(TransactionEntry transaction)
     {
         UidCounter++;
@@ -41,7 +26,7 @@ public class TransactionManager : ITransactionManager
         Console.WriteLine(transaction.ToString());
     }
 
-    public virtual void RemoveEntry(int uid)
+    public virtual void RemoveEntry(Guid uid)
     {
         TransactionEntry? entry = transactions.Find(x => x.Uid == uid);
         if (entry == null)
@@ -58,14 +43,16 @@ public class TransactionManager : ITransactionManager
         Console.WriteLine(entry.ToString());
     }
 
-    public virtual void RemoveTransaction(int uid)
+    public virtual void RemoveTransaction(Guid uid)
     {
         TransactionEntry? entry = transactions.Find(x => x.Uid == uid);
         transactions.Remove(entry);
     }
 
-    public virtual void Populate(int count)
+    public virtual List<TransactionEntry> Populate(int count)
     {
+        List<TransactionEntry> newTransactions = new();
+
         Random random = new Random();
         float totalAmount = 0;
 
@@ -85,7 +72,7 @@ public class TransactionManager : ITransactionManager
             TransactionEntry entry =
                 new()
                 {
-                    Uid = UidCounter,
+                    Uid = Guid.NewGuid(),
                     Type = transactionType,
                     AmountInMinorUnit = random.Next(100, 1000000),
                     Date = randomDate,
@@ -113,13 +100,14 @@ public class TransactionManager : ITransactionManager
 
             Console.WriteLine($"Added {count} entries to the list of transactions.");
             totalAmount += entry.Amount;
-            transactions.Add(entry);
-            UidCounter++;
+            newTransactions.Add(entry);
         }
+
+        transactions.AddRange(newTransactions);
+
+        return newTransactions;
     }
 
-    // These methods only work with List directly and will never be used to save data
-    // so they will never be overridden.
     public float GetTotal()
     {
         float total = 0;
@@ -165,11 +153,11 @@ public class TransactionManager : ITransactionManager
         return transactions;
     }
 
-    public TransactionEntry? GetTransaction(int Uid)
+    public TransactionEntry? GetTransaction(Guid uid)
     {
         foreach (TransactionEntry entry in transactions)
         {
-            if (entry.Uid.Equals(Uid))
+            if (entry.Uid.Equals(uid))
             {
                 return entry;
             }

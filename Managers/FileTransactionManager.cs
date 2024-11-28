@@ -1,23 +1,21 @@
 using System.Text.Json;
 
 // Derived class that adds funtionality to save to and load from a json file.
-public class FileTransactionManager : TransactionManager, ITransactionManager
+public class FileTransactionManager : ListTransactionManager
 {
     protected string filePath = "data/financeData.json";
 
-    public override void OnProgramLoad()
+    public FileTransactionManager()
     {
         ReadFromFile();
-        // Set UidCounter.
-        base.OnProgramLoad();
     }
 
     // Sends the data to base.Add() then saves the List<TransactionEntry> to file.
-    public override void AddEntry(float amount, TransactionType type)
+    public override TransactionEntry CreateTransaction(float amount, TransactionType type)
     {
         //Also using base class function.
-        base.AddEntry(amount, type);
-        SaveToFile();
+        var entry = base.CreateTransaction(amount, type);
+        return entry;
     }
 
     // For testing purposes
@@ -28,14 +26,14 @@ public class FileTransactionManager : TransactionManager, ITransactionManager
     }
 
     // Sends the data to base.Remove() then saves the List<TransactionEntry> to file.
-    public override void RemoveEntry(int uid)
+    public override void RemoveEntry(Guid uid)
     {
         // Also using base class function.
         base.RemoveEntry(uid);
         SaveToFile();
     }
 
-    public override void RemoveTransaction(int uid)
+    public override void RemoveTransaction(Guid uid)
     {
         base.RemoveTransaction(uid);
         SaveToFile();
@@ -68,9 +66,10 @@ public class FileTransactionManager : TransactionManager, ITransactionManager
             ?? new List<TransactionEntry>();
     }
 
-    public override void Populate(int count)
+    public override List<TransactionEntry> Populate(int count)
     {
-        base.Populate(count);
+        var newTransactions = base.Populate(count);
         SaveToFile();
+        return newTransactions;
     }
 }

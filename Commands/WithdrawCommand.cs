@@ -30,6 +30,10 @@ public class WithdrawCommand : Command
             throw new InsufficientBalanceException("Insufficient balance on account.");
         }
 
-        program.TransactionManager.AddEntry(result, TransactionType.Withdrawal);
+        var transactionManager = program.TransactionManager;
+
+        transactionManager.AddTransaction(
+            transactionManager.CreateTransaction(result, TransactionType.Withdrawal)
+        );
     }
 }

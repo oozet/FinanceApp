@@ -15,7 +15,7 @@ public class RemoveTransactionCommand : Command
         }
         if (int.TryParse(commandArgs[1], out int result))
         {
-            program.TransactionManager.RemoveEntry(result);
+            //program.TransactionManager.RemoveEntry(result);
         }
         else
         {
@@ -41,7 +41,7 @@ public class PurgeTransactionCommand : Command
         }
         if (int.TryParse(commandArgs[1], out int result))
         {
-            program.TransactionManager.RemoveTransaction(result);
+            //program.TransactionManager.RemoveTransaction(result);
         }
         else
         {

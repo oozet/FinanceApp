@@ -18,7 +18,6 @@
     static void Main(string[] args)
     {
         Program program = new Program();
-        program.TransactionManager.OnProgramLoad();
         DatabaseService.EnsureTablesExists(program.AppDbContext);
 
         while (program.running)

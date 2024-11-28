@@ -58,7 +58,8 @@ public class FilterTransactionsService
                     "Wrong sorting type. Valid inputs: year, month, week, day."
                 );
         }
-        return program.TransactionManager.FilterTransactions(predicate);
+        //return program.TransactionManager.FilterTransactions(predicate);
+        return null;
     }
 
     // Just a small method to get a valid string as input.

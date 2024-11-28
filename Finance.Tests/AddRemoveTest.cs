@@ -7,12 +7,12 @@ public class AddRemoveTest
     [Fact]
     public void AddTransaction_ShouldAddTransaction()
     {
-        var transactionManager = new TransactionManager();
+        var transactionManager = new ListTransactionManager();
         var transaction = new TransactionEntry
         {
             Date = DateTime.Now,
             AmountInMinorUnit = 10000,
-            Uid = transactionManager.UidCounter,
+            Uid = Guid.NewGuid(),
             Type = TransactionType.Deposit,
         };
         transactionManager.AddTransaction(transaction);
@@ -23,12 +23,12 @@ public class AddRemoveTest
     public void AdminRemoveTransaction_ShouldRemoveTransaction()
     {
         // Arrange
-        var transactionManager = new TransactionManager();
+        var transactionManager = new ListTransactionManager();
         var transaction = new TransactionEntry
         {
             Date = DateTime.Now,
             AmountInMinorUnit = 10000,
-            Uid = transactionManager.UidCounter,
+            Uid = Guid.NewGuid(),
             Type = TransactionType.Deposit,
         };
         transactionManager.AddTransaction(transaction);
@@ -44,12 +44,12 @@ public class AddRemoveTest
     public void RemoveTransaction_ShouldUpdateTransaction()
     {
         // Arrange
-        var transactionManager = new TransactionManager();
+        var transactionManager = new ListTransactionManager();
         var transaction = new TransactionEntry
         {
             Date = DateTime.Now,
             AmountInMinorUnit = 10000,
-            Uid = transactionManager.UidCounter,
+            Uid = Guid.NewGuid(),
             Type = TransactionType.Deposit,
         };
         transactionManager.AddTransaction(transaction);

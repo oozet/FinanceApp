@@ -50,10 +50,10 @@ public class GetEntry : Command
             uid = int.Parse(commandArgs[1]);
         }
 
-        TransactionEntry? transaction = transactionManager.GetTransaction(uid);
+        //TransactionEntry? transaction = transactionManager.GetTransaction(uid);
 
-        if (transaction != null)
-            Console.WriteLine(transaction.ToString());
+        // if (transaction != null)
+        //     Console.WriteLine(transaction.ToString());
     }
 }
 

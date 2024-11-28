@@ -42,11 +42,11 @@ public class FilterTransactionsCommand : Command
             bool IsAdmin = program.MenuManager.GetCurrentMenu() is AdminMenu;
             transactionDisplayService.ListTransactions(entriesBeforeBreak, transactions, IsAdmin);
 
-            (float depositAmount, float withdrawalAmount) =
-                program.TransactionManager.GetTotalPerType(transactions);
-            Console.WriteLine(
-                $"You've made ${depositAmount} and spent ${withdrawalAmount}. A net balance of ${depositAmount - withdrawalAmount} during this time. "
-            );
+            // (float depositAmount, float withdrawalAmount) =
+            //     program.TransactionManager.GetTotalPerType(transactions);
+            // Console.WriteLine(
+            //     $"You've made ${depositAmount} and spent ${withdrawalAmount}. A net balance of ${depositAmount - withdrawalAmount} during this time. "
+            // );
         }
 
         UIService.DisplayWaitForEnter();
