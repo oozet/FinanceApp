@@ -2,9 +2,11 @@ using System;
 using System.Security.Cryptography;
 using System.Text;
 
-public static class PasswordService
+namespace FinanceApp.Services;
+
+public class PasswordService
 {
-    public static (string hash, string salt) HashPassword(string password)
+    public (string hash, string salt) HashPassword(string password)
     {
         // Generate a random salt
         var saltBytes = new byte[16];
@@ -24,7 +26,7 @@ public static class PasswordService
         return (hash, salt);
     }
 
-    public static bool VerifyPassword(string enteredPassword, string storedHash, string storedSalt)
+    public bool VerifyPassword(string enteredPassword, string storedHash, string storedSalt)
     {
         var sha256 = SHA256.Create();
         var saltedPassword = enteredPassword + storedSalt;

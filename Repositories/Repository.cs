@@ -1,41 +1,51 @@
-// public class Repository<T> : IRepository<T> where T : class
-// {
-//     private readonly AppDbContext _context;
+using FinanceApp.Data;
+using Microsoft.EntityFrameworkCore;
 
-//     public Repository(AppDbContext context)
-//     {
-//         _context = context;
-//     }
+public interface IRepository<T>
+    where T : class
+{
+    Task<IEnumerable<T>> GetAllAsync();
+    Task<T?> GetByIdAsync(T id);
+    Task AddAsync(T entity);
+    Task UpdateAsync(T entity);
+    Task DeleteAsync(T entity);
+}
 
-//     public async Task<IEnumerable<T>> GetAllAsync()
-//     {
-//         return await _context.Set<T>().ToListAsync();
-//     }
+public class Repository<T> : IRepository<T>
+    where T : class
+{
+    protected readonly AppDbContext _context;
 
-//     public async Task<T> GetByIdAsync(int id)
-//     {
-//         return await _context.Set<T>().FindAsync(id);
-//     }
+    public Repository(AppDbContext context)
+    {
+        _context = context;
+    }
 
-//     public async Task AddAsync(T entity)
-//     {
-//         await _context.Set<T>().AddAsync(entity);
-//         await _context.SaveChangesAsync();
-//     }
+    public async Task<IEnumerable<T>> GetAllAsync()
+    {
+        return await _context.Set<T>().ToListAsync();
+    }
 
-//     public async Task UpdateAsync(T entity)
-//     {
-//         _context.Set<T>().Update(entity);
-//         await _context.SaveChangesAsync();
-//     }
+    public async Task<T?> GetByIdAsync(T id)
+    {
+        return await _context.Set<T>().FindAsync(id);
+    }
 
-//     public async Task DeleteAsync(int id)
-//     {
-//         var entity = await _context.Set<T>().FindAsync(id);
-//         if (entity != null)
-//         {
-//             _context.Set<T>().Remove(entity);
-//             await _context.SaveChangesAsync();
-//         }
-//     }
-// }
+    public async Task AddAsync(T entity)
+    {
+        await _context.Set<T>().AddAsync(entity);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateAsync(T entity)
+    {
+        _context.Entry(entity).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(T entity)
+    {
+        _context.Set<T>().Remove(entity);
+        await _context.SaveChangesAsync();
+    }
+}

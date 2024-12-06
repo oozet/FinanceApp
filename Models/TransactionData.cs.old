@@ -1,0 +1,7 @@
+namespace FinanceApp.Models;
+
+public class TransactionData
+{
+    public string Name { get; set; }
+    public string Thing { get; set; }
+}

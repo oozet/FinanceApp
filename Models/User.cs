@@ -1,5 +1,11 @@
-public class User
+﻿using System;
+using System.Collections.Generic;
+
+namespace FinanceApp.Models;
+
+public partial class User
 {
-    public int Id { get; set; }
-    public string Username { get; set; }
+    public Guid Id { get; set; }
+
+    public required string Username { get; set; }
 }
