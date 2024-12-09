@@ -1,4 +1,4 @@
-dotnet ef dbcontext scaffold "Host=localhost;Port=5432;Username=postgres;Password=password;Database=finance" Npgsql.EntityFrameworkCore.PostgreSQL -o Models
+dotnet ef dbcontext scaffold "Host=localhost;Port=5432;Username=postgres;Password=password;Database=project" Npgsql.EntityFrameworkCore.PostgreSQL -o Models
 
 
 You can access shadow properties in your code using the Entry method of the DbContext:

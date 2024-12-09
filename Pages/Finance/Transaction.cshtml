@@ -1,0 +1,54 @@
+@page 
+@model TransactionModel 
+@{ ViewData["Title"] = "Transaction"; } 
+
+Div and container:
+<div class="container">
+        <div class="row">
+            <form id="loginForm" method="post" class="col-md-4 mx-auto">
+                <div class="text-center mt-5" style="font-size: 20px;">
+                    Simple App Test
+                </div>
+                <hr />
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="accordion">
+                    <div class="form-group">
+                        <label asp-for="Amount"></label>
+                        <input asp-for="Amount"/>
+                        <span asp-validation-for="Amount"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Password"></label>
+                        <input asp-for="Password" class="form-control" autocomplete="off" />
+                        <div class="invalid-feedback" style="margin-top: 0; font-size: 16px;">
+                            The Password field is required.
+                        </div>
+                    </div>
+                    <div class="form-group text-center mt-2">
+                        <button id="login" type="submit" class="btn btn-outline-info">Log in</button>
+                    </div>
+                </div>
+                <div class="text-center mt-5" style="font-size: 20px;">
+                    <a class="nav-link px-3" href="/Account/Register">Create account</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+No div:
+    <form action="/submit" method="post">
+        <label for="amount">Amount:</label>
+        <input type="number" id="amount" name="amount" required>
+
+        <label for="option">Transaction Type:</label> <select id="type" name="type" required> <option value="deposit">Deposit</option> <option value="withdraw">Withdraw</option> </select>
+
+        <label for="option1">Option 1:</label>
+        <input type="radio" id="option1" name="option" value="option1" required>
+        
+        <label for="option2">Option 2:</label>
+        <input type="radio" id="option2" name="option" value="option2" required>
+
+        <button type="submit">Submit</button>
+    </form>
+    
+@section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }

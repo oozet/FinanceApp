@@ -11,12 +11,12 @@ public interface IRepository<T>
     Task DeleteAsync(T entity);
 }
 
-public class Repository<T> : IRepository<T>
+public class BaseRepository<T> : IRepository<T>
     where T : class
 {
     protected readonly AppDbContext _context;
 
-    public Repository(AppDbContext context)
+    public BaseRepository(AppDbContext context)
     {
         _context = context;
     }

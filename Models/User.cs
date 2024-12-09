@@ -7,5 +7,13 @@ public partial class User
 {
     public Guid Id { get; set; }
 
-    public required string Username { get; set; }
+    public string Username { get; set; } = null!;
+
+    public string PasswordHash { get; set; } = null!;
+
+    public string Salt { get; set; } = null!;
+
+    public virtual ICollection<Account> Accounts { get; set; } = new List<Account>();
+
+    public virtual ICollection<Person> People { get; set; } = new List<Person>();
 }
