@@ -8,7 +8,10 @@ namespace FinanceApp.Pages;
 public class TransactionModel : PageModel
 {
     [BindProperty]
-    public required TransactionFormModel Transaction { get; set; }
+    protected float Amount { get; set; } = 0;
+
+    [BindProperty]
+    public TransactionType Type { get; set; }
 
     public IActionResult OnPost()
     {
@@ -22,10 +25,4 @@ public class TransactionModel : PageModel
 
         return RedirectToPage("ThankYou");
     }
-}
-
-public class TransactionFormModel
-{
-    public float Amount { get; set; }
-    public TransactionType Type { get; set; }
 }

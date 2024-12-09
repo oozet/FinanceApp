@@ -10,7 +10,6 @@ Div and container:
                     Simple App Test
                 </div>
                 <hr />
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="accordion">
                     <div class="form-group">
                         <label asp-for="Amount"></label>
@@ -18,8 +17,8 @@ Div and container:
                         <span asp-validation-for="Amount"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="Password"></label>
-                        <input asp-for="Password" class="form-control" autocomplete="off" />
+                        <label asp-for="Type"></label>
+                        <input asp-for="Type" class="form-control" autocomplete="off" />
                         <div class="invalid-feedback" style="margin-top: 0; font-size: 16px;">
                             The Password field is required.
                         </div>
@@ -50,5 +49,5 @@ No div:
 
         <button type="submit">Submit</button>
     </form>
-    
+
 @section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }
