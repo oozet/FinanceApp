@@ -4,11 +4,11 @@ using FinanceApp.Services;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-public interface IUserRepositorySQL : IRepository<User>
+public interface IUserRepositorySQL : IRepository<AppUser>
 {
     Task<Guid> GetIdByNameAsync(string name);
-    Task<User?> GetUserByNameAndPasswordAsync(string name, string password);
-    Task<User?> CreateUserAsync(string name, string password);
+    Task<AppUser?> GetUserByNameAndPasswordAsync(string name, string password);
+    Task<AppUser?> CreateUserAsync(string name, string password);
 }
 
 public class UserRepositorySQL : IUserRepositorySQL
@@ -60,7 +60,7 @@ public class UserRepositorySQL : IUserRepositorySQL
         return Guid.Empty;
     }
 
-    public async Task<User?> GetUserByNameAndPasswordAsync(string name, string password)
+    public async Task<AppUser?> GetUserByNameAndPasswordAsync(string name, string password)
     {
         string sql = "SELECT id, username, password_hash, salt FROM users WHERE username = @name";
 
@@ -82,7 +82,7 @@ public class UserRepositorySQL : IUserRepositorySQL
                     return null;
                 }
 
-                return new User { Id = reader.GetGuid(0), Username = reader.GetString(1) };
+                return new AppUser { Id = reader.GetGuid(0), Username = reader.GetString(1) };
             }
         }
         catch (NpgsqlException ex)
@@ -99,7 +99,7 @@ public class UserRepositorySQL : IUserRepositorySQL
         return null;
     }
 
-    public async Task<User?> CreateUserAsync(string username, string password)
+    public async Task<AppUser?> CreateUserAsync(string username, string password)
     {
         try
         {
@@ -108,7 +108,7 @@ public class UserRepositorySQL : IUserRepositorySQL
                 return null;
             }
 
-            var newUser = new User { Id = Guid.NewGuid(), Username = username };
+            var newUser = new AppUser { Id = Guid.NewGuid(), Username = username };
 
             (string password_hash, string salt) = _passwordService.HashPassword(password);
             string sql =
@@ -173,27 +173,27 @@ public class UserRepositorySQL : IUserRepositorySQL
     // }
     // #endregion
 
-    Task<IEnumerable<User>> IRepository<User>.GetAllAsync()
+    Task<IEnumerable<AppUser>> IRepository<AppUser>.GetAllAsync()
     {
         throw new NotImplementedException();
     }
 
-    public Task AddAsync(User entity)
+    public Task AddAsync(AppUser entity)
     {
         throw new NotImplementedException();
     }
 
-    public Task UpdateAsync(User entity)
+    public Task UpdateAsync(AppUser entity)
     {
         throw new NotImplementedException();
     }
 
-    public Task DeleteAsync(User entity)
+    public Task DeleteAsync(AppUser entity)
     {
         throw new NotImplementedException();
     }
 
-    public Task<User?> GetByIdAsync(User id)
+    public Task<AppUser?> GetByIdAsync(string id)
     {
         throw new NotImplementedException();
     }

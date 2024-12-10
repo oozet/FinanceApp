@@ -1,6 +1,8 @@
+using System.Security.Claims;
 using FinanceApp.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace FinanceApp.Controllers;
 
@@ -8,27 +10,93 @@ namespace FinanceApp.Controllers;
 public class UserController : Controller
 {
     private readonly IUserRepositorySQL _userRepository;
+    protected IMemoryCache _memoryCache;
 
-    User? currentUser;
-
-    public UserController(IUserRepositorySQL userRepository)
+    public UserController(IUserRepositorySQL userRepository, IMemoryCache memoryCache)
     {
         _userRepository = userRepository;
+        _memoryCache = memoryCache;
     }
 
-    public bool IsSignedIn()
+    public async Task<AppUser> GetCurrentUser()
     {
-        return currentUser != null;
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null)
+        {
+            return null;
+        }
+
+        return await GetUserFromCache(userId);
     }
 
-    public async Task<User?> SignIn(string username, string password)
+    public async Task<AppUser> GetUserFromCache(string userId)
+    {
+        string cacheKey = userId;
+
+        if (!_memoryCache.TryGetValue(cacheKey, out AppUser? cachedUser))
+        {
+            // If not found in cache, fetch from database or UserManager
+
+            cachedUser = await _userRepository.GetByIdAsync(userId);
+
+            if (cachedUser == null)
+            {
+                throw new Exception("User does not exist in database.");
+            }
+            StoreUserInCache(cachedUser);
+        }
+
+        return cachedUser;
+    }
+
+    public void StoreUserInCache(AppUser user)
+    {
+        string cacheKey = user.Id.ToString(); // Use user ID or another unique identifier
+
+        var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(
+            TimeSpan.FromMinutes(30)
+        ); // Cache duration
+
+        _memoryCache.Set(cacheKey, user, cacheEntryOptions);
+
+        return; // Return appropriate response
+    }
+
+    public async Task<AppUser?> SignIn(string username, string password)
     {
         return await _userRepository.GetUserByNameAndPasswordAsync(username, password);
     }
 
-    public async Task<User?> CreateUser(string username, string password)
+    public async Task<AppUser?> CreateUser(string username, string password)
     {
         return await _userRepository.CreateUserAsync(username, password);
+    }
+
+    public class SampleController : Controller
+    {
+        private readonly IMemoryCache _memoryCache;
+
+        public SampleController(IMemoryCache memoryCache)
+        {
+            _memoryCache = memoryCache;
+        }
+
+        public IActionResult Index()
+        {
+            string cacheKey = "appUser";
+            if (!_memoryCache.TryGetValue(cacheKey, out string cachedData))
+            {
+                // Data is not in the cache, so fetch and cache it
+                cachedData = "This is the cached data";
+                var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(
+                    TimeSpan.FromMinutes(5)
+                ); // Cache duration
+
+                _memoryCache.Set(cacheKey, cachedData, cacheEntryOptions);
+            }
+
+            return View(model: cachedData);
+        }
     }
 
     // [HttpGet("Login")]
@@ -54,7 +122,7 @@ public class UserController : Controller
     //     return View();
     // }
 
-    public User GetCurrentUser()
+    public AppUser GetCurrentUser()
     {
         if (currentUser == null)
         {
@@ -67,7 +135,7 @@ public class UserController : Controller
     [HttpPost("Logout")]
     public IActionResult Logout()
     {
-        currentUser = new User { Username = "Tried logout" }; // Add your logout logic here
+        currentUser = new AppUser { Username = "Tried logout" }; // Add your logout logic here
         return RedirectToAction("Index", "Home");
     }
 }
