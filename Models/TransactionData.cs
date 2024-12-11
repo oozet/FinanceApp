@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace FinanceApp.Models;
 
-public partial class Transaction
+public partial class TransactionData
 {
     public Guid Id { get; set; }
 
@@ -15,7 +15,8 @@ public partial class Transaction
 
     public DateTime? DeletedAt { get; set; }
 
-    public virtual Account AccountNumberNavigation { get; set; } = null!;
+    // Not using lazy loading and proxies
+    //public virtual Account AccountNumberNavigation { get; set; } = null!;
 }
 
 public enum TransactionType

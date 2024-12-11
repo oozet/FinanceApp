@@ -12,6 +12,7 @@ public class LogoutModel : PageModel
     public async Task<IActionResult> OnGetAsync()
     {
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        return RedirectToPage("/Index");
+        return Page();
+        //return RedirectToPage("/Index");
     }
 }

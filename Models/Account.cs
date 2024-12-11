@@ -15,7 +15,14 @@ public partial class Account
 
     public DateTime? DeletedAt { get; set; }
 
-    public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+    // public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
 
-    public virtual User? User { get; set; }
+    // public virtual User? User { get; set; }
+}
+
+public enum AccountType
+{
+    Personal,
+    Savings,
+    Business,
 }

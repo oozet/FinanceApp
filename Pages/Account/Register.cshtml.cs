@@ -44,34 +44,34 @@ public class RegisterModel : PageModel
 
         if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
             return Page();
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            var user = await _userController.CreateUser(Username, Password); // TODO: Verify username and password
-
-            if (user != null)
-            {
-                var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, user.Username),
-                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                };
-                var identity = new ClaimsIdentity(
-                    claims,
-                    CookieAuthenticationDefaults.AuthenticationScheme
-                );
-                await HttpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    new ClaimsPrincipal(identity)
-                );
-
-                return Redirect(returnUrl);
-            }
-
-            ModelState.AddModelError(
-                string.Empty,
-                "Unable to create user. Username already exists."
-            );
+            // If we got this far, something failed, redisplay form
+            return Page();
         }
+
+        var user = await _userController.CreateUser(Username, Password); // TODO: Verify username and password
+
+        if (user != null)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            };
+            var identity = new ClaimsIdentity(
+                claims,
+                CookieAuthenticationDefaults.AuthenticationScheme
+            );
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(identity)
+            );
+
+            return Redirect(returnUrl);
+        }
+
+        ModelState.AddModelError(string.Empty, "Unable to create user. Username already exists.");
 
         // If we got this far, something failed, redisplay form
         return Page();

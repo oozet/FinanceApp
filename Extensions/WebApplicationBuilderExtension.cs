@@ -22,10 +22,15 @@ public static class WebApplicationBuilderExtensions
 
         builder.Services.AddRazorPages();
 
+        // Adding a cache.
+        builder.Services.AddMemoryCache();
+
+        // Adding application services.
         builder.Services.AddScoped<UserController>();
         builder.Services.AddScoped<PasswordService>();
         builder.Services.AddScoped<IUserRepositorySQL, UserRepositorySQL>();
 
+        // TODO: Simplify logger? Global possible?
         builder.Services.AddScoped<ILogger<UserRepositorySQL>, Logger<UserRepositorySQL>>();
         builder.Services.AddControllersWithViews();
 
@@ -36,38 +41,23 @@ public static class WebApplicationBuilderExtensions
 
     public static WebApplication ConfigurePipeline(this WebApplication app)
     {
-        //Configure the HTTP request pipeline.
-        // if (!app.Environment.IsDevelopment())
-        // {
-        //     app.UseStatusCodePages();
-        //     app.UseExceptionHandler("/Error");
-        //     app.UseHsts();
-        //     //app.UseDeveloperExceptionPage();
-        //     //app.UseExceptionHandler("/Error");
-        //     //app.UseExceptionHandler("/Home/Error");
-        //     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-        //     //app.UseHsts();
-        // }
-        // else
-        // {
-        //     app.UseStatusCodePages();
-        //     app.UseDeveloperExceptionPage();
-        //     app.UseExceptionHandler("/Error");
-        //     app.UseHsts();
-        // }
-        //app.UseStatusCodePagesWithReExecute("/Error", "?statusCode={0}");
-
         using (var scope = app.Services.CreateScope())
         {
             var services = scope.ServiceProvider;
             var context = services.GetRequiredService<AppDbContext>();
+
+            // Set up account numbers.
+            context.EnsureDatabaseSetup();
+
+            // Delete database if I want a clean state
+            context.Database.EnsureDeleted();
+
             context.Database.EnsureCreated();
         }
 
+        // Setting up custom error page including status code errors.
         app.UseExceptionHandler("/Error");
-        // app.UseStatusCodePages();
         app.UseStatusCodePagesWithReExecute("/Error", "?statusCode={0}");
-        //app.UseStatusCodePagesWithRedirects("/Error{0}");
 
         app.UseHttpsRedirection();
         app.UseStaticFiles();
@@ -77,7 +67,6 @@ public static class WebApplicationBuilderExtensions
         app.UseAuthentication();
         app.UseAuthorization();
 
-        //app.MapRazorPages();
         app.MapRazorPages();
         app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace FinanceApp.Models;
 
-public partial class User
+public partial class AppUser
 {
     public Guid Id { get; set; }
 
@@ -13,7 +13,7 @@ public partial class User
 
     public string Salt { get; set; } = null!;
 
-    public virtual ICollection<Account> Accounts { get; set; } = new List<Account>();
+    //public virtual ICollection<Account> Accounts { get; set; } = new List<Account>();
 
-    public virtual ICollection<Person> People { get; set; } = new List<Person>();
+    //public virtual ICollection<Person> People { get; set; } = new List<Person>();
 }
