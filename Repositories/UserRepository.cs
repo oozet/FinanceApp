@@ -4,6 +4,8 @@ using FinanceApp.Services;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
+namespace FinanceApp.Repositories;
+
 public interface IUserRepositorySQL : IRepository<AppUser>
 {
     Task<Guid> GetIdByNameAsync(string name);
@@ -193,8 +195,40 @@ public class UserRepositorySQL : IUserRepositorySQL
         throw new NotImplementedException();
     }
 
-    public Task<AppUser?> GetByIdAsync(string id)
+    public async Task<AppUser?> GetByIdAsync(string id)
     {
-        throw new NotImplementedException();
+        if (!Guid.TryParse(id, out Guid userId))
+        {
+            throw new InvalidCastException(id + " is not a valid Guid.");
+        }
+
+        string sql = "SELECT id, username FROM users WHERE id = @id";
+
+        await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
+        try
+        {
+            await connection.OpenAsync();
+
+            await using var command = new NpgsqlCommand(sql, connection);
+            command.Parameters.AddWithValue("@id", userId);
+
+            using var reader = await command.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                return new AppUser { Id = reader.GetGuid(0), Username = reader.GetString(1) };
+            }
+        }
+        catch (NpgsqlException ex)
+        {
+            // Log the exception
+            _logger.LogError(ex, "Error creating user in database");
+        }
+        catch (Exception ex)
+        {
+            // Catch any unexpected exceptions
+            _logger.LogError(ex, "Unexpected error during user creation");
+        }
+
+        return null;
     }
 }

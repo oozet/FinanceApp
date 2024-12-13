@@ -15,5 +15,5 @@ public partial class Person
 
     public string Email { get; set; } = null!;
 
-    public virtual User User { get; set; } = null!;
+    //public virtual User User { get; set; } = null!;
 }

@@ -9,6 +9,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     //     : base(options) { }
 
     public DbSet<AppUser> Users { get; set; } = null!;
+    public DbSet<Account> Accounts { get; set; } = null!;
 
     //public DbSet<TransactionData> TransactionData { get; set; } = null!;
 
@@ -16,13 +17,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     // Set up account number sequence. 10 digit numbers starting with 9.
     public void EnsureDatabaseSetup()
     {
-        this.Database.ExecuteSqlRaw(
+        Database.ExecuteSqlRaw(
             @"
-            -- Create the sequence if it doesn't already exist
             DO $$
             BEGIN
                 IF NOT EXISTS (SELECT 1 FROM pg_sequences WHERE schemaname = 'public' AND sequencename = 'account_number_seq') THEN
-                    CREATE SEQUENCE account_number_seq START 100000000 INCREMENT BY 1;
+                    CREATE SEQUENCE account_number_seq START 1 INCREMENT BY 1;
+                ELSE
+                    ALTER SEQUENCE account_number_seq RESTART WITH 1;
                 END IF;
             END
             $$;
@@ -30,7 +32,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             -- Function to generate account numbers
             CREATE OR REPLACE FUNCTION generate_account_number() RETURNS trigger AS $$
             BEGIN
-                NEW.account_number := '9' || LPAD(NEXTVAL('account_number_seq')::text, 9, '0');
+                IF NEW.account_type = 'Personal' THEN
+                    NEW.account_number := '9' || LPAD(NEXTVAL('account_number_seq')::text, 9, '0');
+                ELSIF NEW.account_type = 'Savings' THEN
+                    NEW.account_number := '8' || LPAD(NEXTVAL('account_number_seq')::text, 9, '0');
+                ELSIF NEW.account_type = 'Business' THEN
+                    NEW.account_number := '7' || LPAD(NEXTVAL('account_number_seq')::text, 9, '0');
+                ELSE
+                    NEW.account_number := '9' || LPAD(NEXTVAL('account_number_seq')::text, 9, '0');
+                END IF;
                 RETURN NEW;
             END;
             $$ LANGUAGE plpgsql;
@@ -46,7 +56,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 END IF;
             END
             $$;
-        "
+            "
         );
     }
 
@@ -54,9 +64,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
         // Set up Enums and Uuid generation.
         modelBuilder
-            .HasPostgresEnum("account_type", new[] { "Private", "Savings", "Business" })
+            .HasPostgresEnum("account_type", new[] { "Personal", "Savings", "Business" })
             .HasPostgresEnum("transaction_type", new[] { "Deposit", "Withdrawal" })
             .HasPostgresExtension("uuid-ossp");
+
+        // modelBuilder
+        //     .HasPostgresEnum<AccountType>("account_type")
+        //     .HasPostgresEnum<TransactionType>("transaction_type")
+        //     .HasPostgresExtension("uuid-ossp");
 
         // Set up tables.
         modelBuilder.Entity<AppUser>(entity =>
@@ -81,13 +96,23 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
             entity
                 .Property(e => e.AccountNumber)
+                .HasColumnName("account_number")
                 .HasMaxLength(10)
-                .IsRequired()
-                .HasColumnName("account_number");
+                .ValueGeneratedNever()
+                .HasColumnType("bigint");
+
             entity
                 .Property(e => e.BalanceMinorUnit)
                 .HasDefaultValue(0L)
                 .HasColumnName("balance_minor_unit");
+            entity
+                .Property(e => e.AccountType)
+                .HasColumnName("account_type")
+                .HasConversion(
+                    v => v.ToString(),
+                    v => (AccountType)Enum.Parse(typeof(AccountType), v, true)
+                )
+                .HasColumnType("account_type");
             entity
                 .Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")

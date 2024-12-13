@@ -1,0 +1,21 @@
+@page
+@model CacheTestModel
+@{
+    ViewData["Title"] = "Cache Test";
+}
+
+<h2>Cache Test</h2>
+
+@if (Model.CacheKeys.Any())
+{
+    <ul>
+        @foreach (var key in Model.CacheKeys)
+        {
+            <li>@key</li>
+        }
+    </ul>
+}
+else
+{
+    <p>No cache entries found.</p>
+}

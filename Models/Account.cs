@@ -5,11 +5,13 @@ namespace FinanceApp.Models;
 
 public partial class Account
 {
-    public int AccountNumber { get; set; }
+    public long AccountNumber { get; set; }
 
     public Guid? UserId { get; set; }
 
     public long BalanceMinorUnit { get; set; }
+
+    public AccountType AccountType { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

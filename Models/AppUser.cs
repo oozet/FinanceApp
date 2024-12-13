@@ -9,11 +9,11 @@ public partial class AppUser
 
     public string Username { get; set; } = null!;
 
-    public string PasswordHash { get; set; } = null!;
+    // public string PasswordHash { get; set; } = null!;
 
-    public string Salt { get; set; } = null!;
+    // public string Salt { get; set; } = null!;
 
-    //public virtual ICollection<Account> Accounts { get; set; } = new List<Account>();
+    // public virtual ICollection<Account> Accounts { get; set; } = new List<Account>();
 
-    //public virtual ICollection<Person> People { get; set; } = new List<Person>();
+    // public virtual ICollection<Person> People { get; set; } = new List<Person>();
 }

@@ -1,0 +1,41 @@
+@page
+@model CreateAccountModel
+@{
+    ViewData["Title"] = "Account";
+}
+
+<div class="container">
+    <div class="row">
+        <form id="registerForm" method="post" class="col-md-4 mx-auto">
+            <div class="text-center mt-5" style="font-size: 20px;">
+                Simple App Test
+            </div>
+            <hr />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="accordion">
+                <div class="form-group">
+                    <label asp-for="AccountType"></label>
+                    <select asp-for="AccountType" class="form-control" id="type" required>
+                        <option value="Personal">Personal</option>
+                        <option value="Savings">Savings</option>
+                        <option value="Business">Business</option>
+                    </select>
+                    <span asp-validation-for="AccountType" class="text-danger"></span>
+                </div>
+                <div class="form-group text-center mt-2">
+                    <button id="register" type="submit" class="btn btn-outline-info">Create account</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<partial name="_ValidationScriptsPartial" />
+<style>
+    .form-control.is-invalid, .was-validated .form-control:invalid {
+        background-image: none;
+        border-color: #ced4da;
+    }
+</style>
+}
