@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace FinanceApp.Pages.Account;
+namespace FinanceApp.Pages.UserAccount;
 
 public class RegisterModel : PageModel
 {

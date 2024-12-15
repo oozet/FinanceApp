@@ -1,73 +1,49 @@
-// using FinanceApp.Models;
-// using Microsoft.AspNetCore.Http.HttpResults;
-// using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using FinanceApp.Models;
+using FinanceApp.Repositories;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
-// namespace FinanceApp.Controllers;
+namespace FinanceApp.Controllers;
 
-// //[ApiController]
-// public class TransactionController : Controller
-// {
-//     private readonly IUserRepositorySQL _userRepository;
+public class TransactionController : Controller
+{
+    private readonly IAccountRepositorySQL _accountRepository;
+    private readonly UserController _userController;
+    private readonly CacheService _cacheService;
+    private const string KEY_PREFIX = "Transaction_";
 
-//     User? currentUser;
+    public TransactionController(
+        IAccountRepositorySQL accountRepository,
+        UserController userController,
+        CacheService cacheService
+    )
+    {
+        _accountRepository = accountRepository;
+        _userController = userController;
+        _cacheService = cacheService;
+    }
 
-//     public TransactionController(IUserRepositorySQL userRepository)
-//     {
-//         _userRepository = userRepository;
-//     }
-
-//     public bool IsSignedIn()
-//     {
-//         return currentUser != null;
-//     }
-
-//     public async Task<User?> SignIn(string username, string password)
-//     {
-//         return await _userRepository.GetUserByNameAndPasswordAsync(username, password);
-//     }
-
-//     public async Task<User?> CreateUser(string username, string password)
-//     {
-//         return await _userRepository.CreateUserAsync(username, password);
-//     }
-
-//     // [HttpGet("Login")]
-//     // public IActionResult Login()
-//     // {
-//     //     return RedirectToAction("Index", "Home");
-//     // }
-
-//     // [HttpPost("Login")]
-//     // public IActionResult Login(string username, string password)
-//     // {
-//     //     return RedirectToAction("Index", "Home");
-//     //     // Add your login logic here
-//     //     if (username == "admin" && password == "password") // Example login logic
-//     //     {
-//     //         // Login successful
-//     //         currentUser = new User { Name = "admin" };
-//     //         return RedirectToAction("Index");
-//     //     }
-
-//     //     // Login failed
-//     //     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-//     //     return View();
-//     // }
-
-//     public User GetCurrentUser()
-//     {
-//         if (currentUser == null)
-//         {
-//             throw new InvalidDataException("The user should be set but isn't.");
-//         }
-//         return currentUser;
-//     }
-
-//     [Route("User")]
-//     [HttpPost("Logout")]
-//     public IActionResult Logout()
-//     {
-//         currentUser = new User { Username = "Tried logout" }; // Add your logout logic here
-//         return RedirectToAction("Index", "Home");
-//     }
-// }
+    public async Task<Account?> AddTransaction(
+        float amount,
+        long accountNumber,
+        TransactionType type
+    )
+    {
+        return null;
+        // Console.WriteLine("Trying to create transaction");
+        // var user = await _userController.GetCurrentUser();
+        // Console.WriteLine("Got user.");
+        // if (user == null)
+        // {
+        //     Console.WriteLine("user is null.");
+        //     throw new Exception("No user ");
+        // }
+        // Console.WriteLine("Trying to create account.");
+        // Account account = await _accountRepository.CreateAccountAsync(type, user.Id);
+        // string cacheKey = KEY_PREFIX + account.AccountNumber.ToString();
+        // _cacheService.Set(cacheKey, account);
+        // return account;
+    }
+}

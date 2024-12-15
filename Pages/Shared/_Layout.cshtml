@@ -17,9 +17,9 @@
         <div class="navbar-nav">
             <div class="nav-item text-nowrap">
         @if (User?.Identity?.IsAuthenticated ?? false){
-            <a class="nav-link px-3" href="/Account/Logout">Sign out</a>}
+            <a class="nav-link px-3" href="/UserAccount/Logout">Sign out</a>}
         else{
-            <a class="nav-link px-3" href="/Account/Login">Sign in</a>
+            <a class="nav-link px-3" href="/UserAccount/Login">Sign in</a>
         }
 
     </div>

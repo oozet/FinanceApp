@@ -32,14 +32,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             -- Function to generate account numbers
             CREATE OR REPLACE FUNCTION generate_account_number() RETURNS trigger AS $$
             BEGIN
-                IF NEW.account_type = 'Personal' THEN
-                    NEW.account_number := '9' || LPAD(NEXTVAL('account_number_seq')::text, 9, '0');
-                ELSIF NEW.account_type = 'Savings' THEN
-                    NEW.account_number := '8' || LPAD(NEXTVAL('account_number_seq')::text, 9, '0');
-                ELSIF NEW.account_type = 'Business' THEN
-                    NEW.account_number := '7' || LPAD(NEXTVAL('account_number_seq')::text, 9, '0');
+                IF NEW.account_type = 'personal' THEN
+                    NEW.account_number := '9' || LPAD(NEXTVAL('account_number_seq')::text, 8, '0');
+                ELSIF NEW.account_type = 'savings' THEN
+                    NEW.account_number := '8' || LPAD(NEXTVAL('account_number_seq')::text, 8, '0');
+                ELSIF NEW.account_type = 'business' THEN
+                    NEW.account_number := '7' || LPAD(NEXTVAL('account_number_seq')::text, 8, '0');
                 ELSE
-                    NEW.account_number := '9' || LPAD(NEXTVAL('account_number_seq')::text, 9, '0');
+                    NEW.account_number := '9' || LPAD(NEXTVAL('account_number_seq')::text, 8, '0');
                 END IF;
                 RETURN NEW;
             END;
@@ -64,8 +64,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
         // Set up Enums and Uuid generation.
         modelBuilder
-            .HasPostgresEnum("account_type", new[] { "Personal", "Savings", "Business" })
-            .HasPostgresEnum("transaction_type", new[] { "Deposit", "Withdrawal" })
+            .HasPostgresEnum("account_type", new[] { "personal", "savings", "business" })
+            .HasPostgresEnum("transaction_type", new[] { "deposit", "withdrawal" })
             .HasPostgresExtension("uuid-ossp");
 
         // modelBuilder
@@ -140,6 +140,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.Id).HasDefaultValueSql("uuid_generate_v4()").HasColumnName("id");
             entity.Property(e => e.AccountNumber).HasColumnName("account_number");
             entity.Property(e => e.AmountMinorUnit).HasColumnName("amount_minor_unit");
+            entity
+                .Property(e => e.TransactionType)
+                .HasColumnName("transaction_type")
+                .HasConversion(
+                    v => v.ToString(),
+                    v => (TransactionType)Enum.Parse(typeof(TransactionType), v, true)
+                )
+                .HasColumnType("account_type");
             entity
                 .Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")

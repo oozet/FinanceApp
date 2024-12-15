@@ -37,6 +37,7 @@ public static class WebApplicationBuilderExtensions
         // Adding application services.
         builder.Services.AddScoped<UserController>();
         builder.Services.AddScoped<AccountController>();
+        builder.Services.AddScoped<TransactionController>();
         builder.Services.AddScoped<PasswordService>();
         builder.Services.AddScoped<IUserRepositorySQL, UserRepositorySQL>();
         builder.Services.AddScoped<IAccountRepositorySQL, AccountRepositorySQL>();

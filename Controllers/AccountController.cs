@@ -42,4 +42,9 @@ public class AccountController : Controller
         _cacheService.Set(cacheKey, account);
         return account;
     }
+
+    public async Task<List<Account>> GetUserAccounts(string userId)
+    {
+        return await _accountRepository.GetAllAccountsAsync(userId);
+    }
 }

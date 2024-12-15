@@ -24,7 +24,7 @@ public class CreateAccountModel : PageModel
     public string ErrorMessage { get; set; } = string.Empty;
     public string ReturnUrl { get; set; } = string.Empty;
 
-    [BindProperty, Required(ErrorMessage = "Transaction type is required.")]
+    [BindProperty, Required(ErrorMessage = "Account type is required.")]
     public AccountType AccountType { get; set; } = AccountType.Personal;
 
     public void OnGet(string? returnUrl = null)

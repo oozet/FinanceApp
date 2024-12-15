@@ -1,15 +1,32 @@
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using System.Transactions;
+using FinanceApp.Controllers;
 using FinanceApp.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace FinanceApp.Pages;
+namespace FinanceApp.Pages.Finance;
 
+[Authorize]
 public class TransactionModel : PageModel
 {
-    // [BindProperty]
-    // public required TransactionFormModel Transaction { get; set; }
+    private readonly TransactionController _transactionController;
+    private readonly AccountController _accountController;
+
+    public List<Account> Accounts { get; private set; }
+    public long AccountNumber { get; set; }
+
+    public TransactionModel(
+        TransactionController transactionController,
+        AccountController accountController
+    )
+    {
+        _transactionController = transactionController;
+        _accountController = accountController;
+    }
+
     [TempData]
     public string ErrorMessage { get; set; } = string.Empty;
     public string ReturnUrl { get; set; } = string.Empty;
@@ -17,10 +34,10 @@ public class TransactionModel : PageModel
     [BindProperty, Required]
     public float Amount { get; set; }
 
-    [BindProperty]
-    public TransactionType Type { get; set; }
+    [BindProperty, Required(ErrorMessage = "Transaction type is required.")]
+    public TransactionType TransactionType { get; set; }
 
-    public void OnGet(string? returnUrl = null)
+    public async Task OnGetAsync(string? returnUrl = null)
     {
         if (!string.IsNullOrEmpty(ErrorMessage))
         {
@@ -28,6 +45,9 @@ public class TransactionModel : PageModel
         }
 
         ReturnUrl = returnUrl ?? Url.Content("~/");
+        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+        Accounts = await _accountController.GetUserAccounts(userId);
     }
 
     public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
@@ -51,7 +71,7 @@ public class TransactionModel : PageModel
         // Process the form data here
         // For example, save it to a database or send an email
 
-        return RedirectToPage("ThankYou");
+        return Page();
     }
 }
 

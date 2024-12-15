@@ -10,6 +10,7 @@ public interface IAccountRepositorySQL : IRepository<Account>
 {
     public Task<Account> CreateAccountAsync(AccountType type, Guid userId);
     public Task<Account> GetAccountsAsync();
+    public Task<List<Account>> GetAllAccountsAsync(string userId);
 }
 
 public class AccountRepositorySQL : IAccountRepositorySQL
@@ -46,7 +47,7 @@ public class AccountRepositorySQL : IAccountRepositorySQL
 
                 await using var command = new NpgsqlCommand(sql, connection);
                 command.Parameters.AddWithValue("@user_id", userId);
-                command.Parameters.AddWithValue("@type", accountType.ToString());
+                command.Parameters.AddWithValue("@type", accountType.ToString().ToLower());
 
                 await using var reader = await command.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
@@ -95,6 +96,54 @@ public class AccountRepositorySQL : IAccountRepositorySQL
         throw new NotImplementedException();
     }
 
+    public async Task<List<Account>> GetAllAccountsAsync(string userId)
+    {
+        if (!Guid.TryParse(userId, out var userGuid))
+        {
+            throw new ArgumentException("userId is not a valid Guid.");
+        }
+        string sql = "SELECT * FROM accounts WHERE user_id = @user_id";
+        var accounts = new List<Account>();
+
+        await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
+        try
+        {
+            await connection.OpenAsync();
+
+            await using var command = new NpgsqlCommand(sql, connection);
+            command.Parameters.AddWithValue("@user_id", userGuid);
+
+            await using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                accounts.Add(
+                    new Account
+                    {
+                        AccountNumber = reader.GetInt64(0),
+                        UserId = reader.GetGuid(1),
+                        BalanceMinorUnit = reader.GetInt64(2),
+                        AccountType = (AccountType)
+                            Enum.Parse(typeof(AccountType), reader.GetString(3), true),
+                        CreatedAt = reader.GetDateTime(4),
+                    }
+                );
+            }
+            return accounts;
+        }
+        catch (NpgsqlException ex)
+        {
+            // Log the exception
+            _logger.LogError(ex, "Error creating user in database");
+        }
+        catch (Exception ex)
+        {
+            // Catch any unexpected exceptions
+            _logger.LogError(ex, "Unexpected error during user creation");
+        }
+
+        return null;
+    }
+
     public Task<IEnumerable<Account>> GetAllAsync()
     {
         throw new NotImplementedException();
@@ -121,10 +170,12 @@ public class AccountRepositorySQL : IAccountRepositorySQL
             {
                 return new Account
                 {
-                    AccountNumber = reader.GetInt32(0),
+                    AccountNumber = reader.GetInt64(0),
                     UserId = reader.GetGuid(1),
                     BalanceMinorUnit = reader.GetInt64(2),
-                    CreatedAt = reader.GetDateTime(3),
+                    AccountType = (AccountType)
+                        Enum.Parse(typeof(AccountType), reader.GetString(3), true),
+                    CreatedAt = reader.GetDateTime(4),
                 };
             }
             else
