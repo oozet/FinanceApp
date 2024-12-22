@@ -18,8 +18,10 @@ public static class WebApplicationBuilderExtensions
         builder
             .Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(options =>
-                options.DataProtectionProvider = new EphemeralDataProtectionProvider()
-            );
+            {
+                options.DataProtectionProvider = new EphemeralDataProtectionProvider();
+                options.LoginPath = "/UserAccount/Login";
+            });
         builder.Services.AddAuthorization();
 
         // Adding DbContext with connectionstring from appsettings.json.
@@ -60,7 +62,7 @@ public static class WebApplicationBuilderExtensions
             var context = services.GetRequiredService<AppDbContext>();
 
             // Delete database if I want a clean state
-            context.Database.EnsureDeleted();
+            //context.Database.EnsureDeleted();
 
             context.Database.EnsureCreated();
 
@@ -69,8 +71,8 @@ public static class WebApplicationBuilderExtensions
         }
 
         // Setting up custom error page including status code errors.
-        app.UseExceptionHandler("/Error");
-        app.UseStatusCodePagesWithReExecute("/Error", "?statusCode={0}");
+        app.UseExceptionHandler("/Error/Error");
+        app.UseStatusCodePagesWithReExecute("/Error/Error", "?statusCode={0}");
 
         app.UseHttpsRedirection();
         app.UseStaticFiles();

@@ -62,8 +62,6 @@ public class AccountRepositorySQL : IAccountRepositorySQL
                         CreatedAt = reader.GetDateTime(4),
                     };
                 }
-                else
-                    return null;
             }
             catch (NpgsqlException ex)
             {
@@ -84,6 +82,7 @@ public class AccountRepositorySQL : IAccountRepositorySQL
             _logger.LogError(ex, "Error in user creation process");
             return null;
         }
+        return null;
     }
 
     public Task DeleteAsync(Account entity)

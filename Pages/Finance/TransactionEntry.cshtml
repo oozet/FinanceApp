@@ -1,11 +1,19 @@
 @page 
-@model TransactionModel 
+@model TransactionEntryModel 
 @{
-    ViewData["Title"] = "Transaction";
+    ViewData["Title"] = "TransactionEntry";
 } 
+<style> .dropdown { 
+    appearance: none; -webkit-appearance: none; -moz-appearance: none;
+    background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg"><polyline points="20 40, 70 90, 120 40" style="fill:none;stroke:black;stroke-width:16" /></svg>') no-repeat right center;
+    background-position: calc(100% - 10px) center;
+    background-size: 10px;
+    padding-right: 20px; }
+</style>
 
-@{if (Model.Accounts == null) { <p>No accounts</p>}
+@{if (Model.Accounts == null || Model.Accounts.Count == 0) { <p>No accounts. Add an account to be able to add a transaction.</p>}
 else if (User.Identity.IsAuthenticated) {
+    if (TempData["SuccessMessage"] != null) { <div class="alert alert-success">@TempData["SuccessMessage"]</div> }
     <div class="container">
         <div class="row">
             <form id="transactionForm" method="post" class="col-md-4 mx-auto">
@@ -16,8 +24,13 @@ else if (User.Identity.IsAuthenticated) {
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="accordion">
                     <div class="form-group">
+                        <label asp-for="Amount"></label>
+                        <input asp-for="Amount" class="form-control" step="0.01" autocomplete="off" />
+                        <span asp-validation-for="Amount" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
                         <label asp-for="TransactionType"></label>
-                        <select asp-for="TransactionType" class="form-control" id="type" required>
+                        <select asp-for="TransactionType" class="form-control dropdown" id="type" required>
                             <option value="Deposit">Deposit</option>
                             <option value="Withdrawal">Withdrawal</option>
                         </select>
@@ -25,7 +38,7 @@ else if (User.Identity.IsAuthenticated) {
                     </div>
                     <div class="form-group">
                         <label asp-for="AccountNumber"></label>
-                        <select asp-for="AccountNumber" class="form-control" id="account" required>
+                        <select asp-for="AccountNumber" class="form-control dropdown" id="account" required>
                             @foreach (var account in Model.Accounts)
                             {
                                 <option value="@account.AccountNumber">@account.AccountNumber</option>
@@ -34,7 +47,7 @@ else if (User.Identity.IsAuthenticated) {
                     <span asp-validation-for="AccountNumber" class="text-danger"></span>
                 </div>
                 <div class="form-group text-center mt-2">
-                    <button id="register" type="submit" class="btn btn-outline-info">Create account</button>
+                    <button id="register" type="submit" class="btn btn-outline-info">Add transaction</button>
                 </div>
             </div>
         </form>
@@ -43,21 +56,7 @@ else if (User.Identity.IsAuthenticated) {
 }
 else{
 
-<p>No div:</p>
-    <form action = "/submit" method="post">
-        <label for="amount">Amount:</label>
-        <input type = "number" id="amount" name="amount" required>
-
-        <label for="option">Transaction Type:</label> <select id = "type" name="type" required> <option value = "deposit"> Deposit </option > <option value="withdraw">Withdraw</option> </select>
-
-        <label for="option1">Option 1:</label>
-        <input type = "radio" id="option1" name="option" value="option1" required>
-
-        <label for="option2">Option 2:</label>
-        <input type = "radio" id="option2" name="option" value="option2" required>
-
-        <button type = "submit" > Submit </button >
-    </form>
+<div>You need to be logged in to add a transaction.</div>
     }
 }
 @section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }

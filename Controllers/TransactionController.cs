@@ -25,13 +25,23 @@ public class TransactionController : Controller
         _cacheService = cacheService;
     }
 
-    public async Task<Account?> AddTransaction(
-        float amount,
+    public async Task<TransactionData> AddTransaction(
+        long amountMinorUnit,
         long accountNumber,
         TransactionType type
     )
     {
-        return null;
+        var transactionEntry = new TransactionData()
+        {
+            Id = Guid.NewGuid(),
+            AmountMinorUnit = amountMinorUnit,
+            AccountNumber = accountNumber,
+            TransactionType = type,
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        // Add transaction to database.
+        return transactionEntry;
         // Console.WriteLine("Trying to create transaction");
         // var user = await _userController.GetCurrentUser();
         // Console.WriteLine("Got user.");

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
-using System.Transactions;
+using System.Text.Json;
 using FinanceApp.Controllers;
 using FinanceApp.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -10,15 +10,14 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace FinanceApp.Pages.Finance;
 
 [Authorize]
-public class TransactionModel : PageModel
+public class TransactionEntryModel : PageModel
 {
     private readonly TransactionController _transactionController;
     private readonly AccountController _accountController;
 
-    public List<Account> Accounts { get; private set; }
-    public long AccountNumber { get; set; }
+    public List<Account> Accounts { get; private set; } = new List<Account>();
 
-    public TransactionModel(
+    public TransactionEntryModel(
         TransactionController transactionController,
         AccountController accountController
     )
@@ -31,11 +30,15 @@ public class TransactionModel : PageModel
     public string ErrorMessage { get; set; } = string.Empty;
     public string ReturnUrl { get; set; } = string.Empty;
 
-    [BindProperty, Required]
+    [BindProperty, Required(ErrorMessage = "Amount is required.")]
+    [Range(0.01, float.MaxValue, ErrorMessage = "Amount must be a positive number.")]
     public float Amount { get; set; }
 
     [BindProperty, Required(ErrorMessage = "Transaction type is required.")]
     public TransactionType TransactionType { get; set; }
+
+    [BindProperty, Required(ErrorMessage = "Account number is required.")]
+    public long AccountNumber { get; set; }
 
     public async Task OnGetAsync(string? returnUrl = null)
     {
@@ -46,12 +49,21 @@ public class TransactionModel : PageModel
 
         ReturnUrl = returnUrl ?? Url.Content("~/");
         var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-
-        Accounts = await _accountController.GetUserAccounts(userId);
+        if (userId != null)
+        {
+            Accounts = await _accountController.GetUserAccounts(userId);
+            TempData["Accounts"] = JsonSerializer.Serialize(Accounts);
+        }
     }
 
     public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
     {
+        // Fixes List<Accounts> set to null on page reset.
+        string? accountsJson = TempData["Accounts"] as string;
+        Accounts = !string.IsNullOrEmpty(accountsJson)
+            ? JsonSerializer.Deserialize<List<Account>>(accountsJson) ?? new List<Account>()
+            : new List<Account>();
+
         returnUrl = returnUrl ?? Url.Content("~/");
         if (!ModelState.IsValid)
         {
@@ -60,7 +72,14 @@ public class TransactionModel : PageModel
 
         long AmountMinorUnit = (long)(Amount * 100);
 
-        // var transaction = await _userController.AddTransaction(AmountMinorUnit, Type); // TODO: Verify username and password
+        var transactionEntry = await _transactionController.AddTransaction(
+            AmountMinorUnit,
+            AccountNumber,
+            TransactionType
+        );
+        Console.WriteLine("Id: " + transactionEntry.Id);
+        Console.WriteLine("Amount: " + transactionEntry.AmountMinorUnit);
+        // TODO: Verify username and password
 
         // if (transaction != null)
         // {
@@ -70,8 +89,10 @@ public class TransactionModel : PageModel
 
         // Process the form data here
         // For example, save it to a database or send an email
-
-        return Page();
+        Amount = 0;
+        TempData.Keep("Accounts");
+        TempData["SuccessMessage"] = "Transaction completed successfully.";
+        return RedirectToPage();
     }
 }
 

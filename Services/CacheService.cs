@@ -12,7 +12,7 @@ public class CacheService
         _keys = new ConcurrentDictionary<string, bool>();
     }
 
-    public void Set<T>(string key, T value, MemoryCacheEntryOptions options = null)
+    public void Set<T>(string key, T value, MemoryCacheEntryOptions? options = null)
     {
         if (options == null)
         {
@@ -27,7 +27,7 @@ public class CacheService
 
     public bool TryGetValue<T>(string key, out T value)
     {
-        return _cache.TryGetValue(key, out value);
+        return _cache.TryGetValue(key, out value!);
     }
 
     public void Remove(string key)
