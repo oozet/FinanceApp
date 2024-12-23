@@ -37,7 +37,7 @@ public class TransactionController : Controller
             AmountMinorUnit = amountMinorUnit,
             AccountNumber = accountNumber,
             TransactionType = type,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.Now,
         };
 
         // Add transaction to database.
