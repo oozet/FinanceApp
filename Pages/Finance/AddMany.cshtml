@@ -1,5 +1,5 @@
 @page 
-@model TransactionEntryModel 
+@model AddManyModel 
 @{
     ViewData["Title"] = "TransactionEntry";
 } 
@@ -49,18 +49,17 @@ else if (User.Identity.IsAuthenticated) {
                             }
                         </select>
                     <span asp-validation-for="AccountNumber" class="text-danger"></span>
+                    </div>
+                    <div class="form-group text-center mt-2">
+                        <button id="add" type="submit" class="btn btn-outline-info">Add transaction</button>
+                    </div>
                 </div>
-                <div class="form-group text-center mt-2">
-                    <button id="register" type="submit" class="btn btn-outline-info">Add transaction</button>
-                </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
-</div>
-}
-else{
-
-<div>You need to be logged in to add a transaction.</div>
+    }
+    else{
+        <div>You need to be logged in to add a transaction.</div>
     }
 }
 @section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }

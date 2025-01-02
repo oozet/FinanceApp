@@ -4,20 +4,21 @@ using System.Text.Json;
 using FinanceApp.Controllers;
 using FinanceApp.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Forms.Mapping;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace FinanceApp.Pages.Finance;
 
 [Authorize]
-public class TransactionEntryModel : PageModel
+public class AddManyModel : PageModel
 {
     private readonly TransactionController _transactionController;
     private readonly AccountController _accountController;
 
     public List<Account> Accounts { get; private set; } = new List<Account>();
 
-    public TransactionEntryModel(
+    public AddManyModel(
         TransactionController transactionController,
         AccountController accountController
     )
@@ -56,7 +57,7 @@ public class TransactionEntryModel : PageModel
         }
     }
 
-    public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
+    public async Task<IActionResult> OnPostAsync()
     {
         // Fixes List<Accounts> being set to null on page reset.
         string? accountsJson = TempData["Accounts"] as string;
@@ -64,9 +65,9 @@ public class TransactionEntryModel : PageModel
             ? JsonSerializer.Deserialize<List<Account>>(accountsJson) ?? new List<Account>()
             : new List<Account>();
 
-        returnUrl = returnUrl ?? Url.Content("~/");
         if (!ModelState.IsValid)
         {
+            Console.WriteLine("ModelState Invalid!");
             return Page();
         }
 
@@ -88,14 +89,23 @@ public class TransactionEntryModel : PageModel
         }
         else
         {
-            var transactionEntry = await _transactionController.AddTransactionAsync(
+            var result = await _transactionController.AddToQueueAsync(
                 AmountMinorUnit,
                 selectedAccount.AccountNumber,
                 TransactionType
             );
-            Console.WriteLine("Id: " + transactionEntry.Id);
-            Console.WriteLine("Amount: " + transactionEntry.AmountMinorUnit);
-            TempData["SuccessMessage"] = "Transaction completed successfully.";
+            if (result == Result.Success)
+            {
+                TempData["SuccessMessage"] = "Transactions completed successfully.";
+            }
+            else if (result == Result.NoChange)
+            {
+                TempData["SuccessMessage"] = "Transaction added to queue.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Error: Transaction failed.";
+            }
         }
 
         // Reset form and keep Accounts.

@@ -61,7 +61,7 @@ public class UserController : Controller
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return null;
+                throw;
             }
 
             if (cachedUser == null)
@@ -73,19 +73,6 @@ public class UserController : Controller
 
         Console.WriteLine("User got");
         return cachedUser;
-    }
-
-    //Is this ever used?
-    public void StoreUserInCache(AppUser user)
-    {
-        Console.WriteLine("Debug: StoreUserInCache is used.");
-        string cacheKey = KEY_PREFIX + user.Id.ToString();
-
-        var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(
-            TimeSpan.FromMinutes(30)
-        ); // Cache duration
-
-        return; // Return appropriate response
     }
 
     public void StoreInCache<T>(string cacheKey, T entity)
@@ -125,7 +112,17 @@ public class UserController : Controller
 
     public async Task<AppUser?> CreateUser(string username, string password)
     {
+        // Return null user if username is already in database.
+        if (await _userRepository.GetIdByNameAsync(username) != Guid.Empty)
+        {
+            return null;
+        }
         var appUser = await _userRepository.CreateUserAsync(username, password);
+        if (appUser == null)
+        {
+            Console.WriteLine("Debug: user not created.");
+            throw new InvalidOperationException("User not created.");
+        }
         string cacheKey = KEY_PREFIX + appUser.Id.ToString();
         StoreInCache(cacheKey, appUser);
         return appUser;

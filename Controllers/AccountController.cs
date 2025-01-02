@@ -10,13 +10,13 @@ namespace FinanceApp.Controllers;
 //[ApiController]
 public class AccountController : Controller
 {
-    private readonly IAccountRepositorySQL _accountRepository;
+    private readonly AccountRepositorySQL _accountRepository;
     private readonly UserController _userController;
     private readonly CacheService _cacheService;
     private const string KEY_PREFIX = "Account_";
 
     public AccountController(
-        IAccountRepositorySQL accountRepository,
+        AccountRepositorySQL accountRepository,
         UserController userController,
         CacheService cacheService
     )
@@ -46,5 +46,22 @@ public class AccountController : Controller
     public async Task<List<Account>> GetUserAccounts(string userId)
     {
         return await _accountRepository.GetAllAccountsAsync(userId);
+    }
+
+    public async Task<float> GetBalance(long accountNumber)
+    {
+        string cacheKey = KEY_PREFIX + accountNumber.ToString();
+        if (_cacheService.TryGetValue(cacheKey, out Account? account))
+        {
+            return account!.BalanceMinorUnit / 100;
+        }
+        account = await _accountRepository.GetAsync(accountNumber);
+
+        if (account == null)
+        {
+            throw new Exception("Account not found.");
+        }
+
+        return account.BalanceMinorUnit / 100;
     }
 }

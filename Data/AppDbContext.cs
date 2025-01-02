@@ -3,18 +3,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FinanceApp.Data;
 
+// Trying out primary constructor.
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    // public AppDbContext(DbContextOptions<AppDbContext> options)
-    //     : base(options) { }
-
     public DbSet<AppUser> Users { get; set; } = null!;
     public DbSet<Account> Accounts { get; set; } = null!;
+    public DbSet<TransactionData> TransactionData { get; set; } = null!;
 
-    //public DbSet<TransactionData> TransactionData { get; set; } = null!;
-
-
-    // Set up account number sequence. 10 digit numbers starting with 9.
+    // Set up account number sequence. 10 digit numbers starting with 9, 8 or 7 depending on type.
     public void EnsureDatabaseSetup()
     {
         Database.ExecuteSqlRaw(
@@ -23,8 +19,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             BEGIN
                 IF NOT EXISTS (SELECT 1 FROM pg_sequences WHERE schemaname = 'public' AND sequencename = 'account_number_seq') THEN
                     CREATE SEQUENCE account_number_seq START 1 INCREMENT BY 1;
-                ELSE
-                    ALTER SEQUENCE account_number_seq RESTART WITH 1;
                 END IF;
             END
             $$;
@@ -92,7 +86,16 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             entity.HasKey(e => e.AccountNumber).HasName("accounts_pkey");
 
-            entity.ToTable("accounts");
+            entity.ToTable(
+                "accounts",
+                t =>
+                {
+                    t.HasCheckConstraint(
+                        "CK_Account_BalanceNonNegative",
+                        "balance_minor_unit >= 0"
+                    );
+                }
+            );
 
             entity
                 .Property(e => e.AccountNumber)
@@ -147,7 +150,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                     v => v.ToString(),
                     v => (TransactionType)Enum.Parse(typeof(TransactionType), v, true)
                 )
-                .HasColumnType("account_type");
+                .HasColumnType("transaction_type");
             entity
                 .Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")

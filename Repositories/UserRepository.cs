@@ -11,13 +11,14 @@ public interface IUserRepositorySQL : IRepository<AppUser>
     Task<Guid> GetIdByNameAsync(string name);
     Task<AppUser?> GetUserByNameAndPasswordAsync(string name, string password);
     Task<AppUser?> CreateUserAsync(string name, string password);
+    Task<AppUser?> GetByIdAsync(string id);
 }
 
 public class UserRepositorySQL : IUserRepositorySQL
 {
     private readonly PasswordService _passwordService;
     private readonly AppDbContext _context;
-    private ILogger _logger;
+    private ILogger<UserRepositorySQL> _logger;
 
     public UserRepositorySQL(
         AppDbContext context,
@@ -152,35 +153,7 @@ public class UserRepositorySQL : IUserRepositorySQL
         }
     }
 
-    // #region Dispose
-    // // region to make it collapsable
-    // private bool _disposed = false;
-
-    // protected virtual void Dispose(bool disposing)
-    // {
-    //     if (!_disposed)
-    //     {
-    //         if (disposing)
-    //         {
-    //             _context.Dispose();
-    //         }
-    //     }
-    //     _disposed = true;
-    // }
-
-    // public void Dispose()
-    // {
-    //     Dispose(true);
-    //     GC.SuppressFinalize(this);
-    // }
-    // #endregion
-
     Task<IEnumerable<AppUser>> IRepository<AppUser>.GetAllAsync()
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task AddAsync(AppUser entity)
     {
         throw new NotImplementedException();
     }
@@ -193,6 +166,38 @@ public class UserRepositorySQL : IUserRepositorySQL
     public Task DeleteAsync(AppUser entity)
     {
         throw new NotImplementedException();
+    }
+
+    public async Task<AppUser?> GetByIdAsync(Guid id)
+    {
+        string sql = "SELECT id, username FROM users WHERE id = @id";
+
+        await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
+        try
+        {
+            await connection.OpenAsync();
+
+            await using var command = new NpgsqlCommand(sql, connection);
+            command.Parameters.AddWithValue("@id", id);
+
+            using var reader = await command.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                return new AppUser { Id = reader.GetGuid(0), Username = reader.GetString(1) };
+            }
+        }
+        catch (NpgsqlException ex)
+        {
+            // Log the exception
+            _logger.LogError(ex, "Error creating user in database");
+        }
+        catch (Exception ex)
+        {
+            // Catch any unexpected exceptions
+            _logger.LogError(ex, "Unexpected error during user creation");
+        }
+
+        return null;
     }
 
     public async Task<AppUser?> GetByIdAsync(string id)

@@ -1,35 +1,32 @@
 using FinanceApp.Data;
 using Microsoft.EntityFrameworkCore;
 
+namespace FinanceApp.Repositories;
+
 public interface IRepository<T>
     where T : class
 {
     Task<IEnumerable<T>> GetAllAsync();
-    Task<T?> GetByIdAsync(string id);
-    Task AddAsync(T entity);
+    Task<T?> GetByIdAsync(Guid id);
     Task UpdateAsync(T entity);
     Task DeleteAsync(T entity);
 }
 
-public class BaseRepository<T> : IRepository<T>
+public abstract class Repository<T> : IRepository<T>
     where T : class
 {
     protected readonly AppDbContext _context;
+    protected ILogger<Repository<T>> _logger;
 
-    public BaseRepository(AppDbContext context)
+    public Repository(AppDbContext context, ILogger<Repository<T>> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task<IEnumerable<T>> GetAllAsync()
     {
         return await _context.Set<T>().ToListAsync();
-    }
-
-    public async Task AddAsync(T entity)
-    {
-        await _context.Set<T>().AddAsync(entity);
-        await _context.SaveChangesAsync();
     }
 
     public async Task UpdateAsync(T entity)
@@ -44,8 +41,8 @@ public class BaseRepository<T> : IRepository<T>
         await _context.SaveChangesAsync();
     }
 
-    public Task<T?> GetByIdAsync(string id)
+    public async Task<T?> GetByIdAsync(Guid id)
     {
-        throw new NotImplementedException();
+        return await _context.Set<T>().FindAsync(id);
     }
 }

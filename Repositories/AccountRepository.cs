@@ -1,6 +1,6 @@
 using FinanceApp.Data;
 using FinanceApp.Models;
-using FinanceApp.Services;
+using FinanceApp.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -148,12 +148,13 @@ public class AccountRepositorySQL : IAccountRepositorySQL
         throw new NotImplementedException();
     }
 
-    public async Task<Account?> GetByIdAsync(string id)
+    public Task<Account?> GetByIdAsync(Guid id)
     {
-        if (!int.TryParse(id, out var accountNumber))
-        {
-            throw new ArgumentException("id is not a valid integer value.");
-        }
+        throw new InvalidDataException("Account number should not be a Guid.");
+    }
+
+    public async Task<Account?> GetAsync(long accountNumber)
+    {
         string sql = "SELECT * FROM accounts WHERE id = @account_number";
 
         await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());

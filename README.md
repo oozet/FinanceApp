@@ -1,16 +1,7 @@
-dotnet ef dbcontext scaffold "Host=localhost;Port=5432;Username=postgres;Password=password;Database=project" Npgsql.EntityFrameworkCore.PostgreSQL -o Models
+## Project for Database course PGBSNH24P
 
-
-You can access shadow properties in your code using the Entry method of the DbContext:
-var user = _context.Users.FirstOrDefault(u => u.Username == username);
-
-if (user != null)
-{
-    var passwordHash = _context.Entry(user).Property("PasswordHash").CurrentValue.ToString();
-    var salt = _context.Entry(user).Property("Salt").CurrentValue.ToString();
-
-    if (_passwordService.VerifyPassword(passwordHash, password))
-    {
-        // User is authenticated
-    }
-}
+This project is mainly about using SQL with a Postgres database, learning about Docker and basic C#. Not using ORM is a deliberate choice.
+There are many mistakes I've realized during my journey such as: 
+- Not using HttpResponse/HttpRequest in controllers.
+- Not always following naming conventions for Async methods.
+I've not had the time to amend these issues at this time.
