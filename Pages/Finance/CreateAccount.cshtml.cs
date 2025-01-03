@@ -49,7 +49,7 @@ public class CreateAccountModel : PageModel
 
         try
         {
-            var account = await _accountController.CreateAccount(AccountType); // TODO: Verify username and password
+            var account = await _accountController.CreateAccountAsync(AccountType); // TODO: Verify username and password
             return Redirect(returnUrl);
         }
         catch (Exception ex)

@@ -36,28 +36,16 @@ public class UserRepositorySQL : IUserRepositorySQL
         string sql = "SELECT id FROM users WHERE username = @name";
 
         await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
-        try
-        {
-            await connection.OpenAsync();
 
-            await using var command = new NpgsqlCommand(sql, connection);
-            command.Parameters.AddWithValue("@name", name);
+        await connection.OpenAsync();
 
-            using var reader = await command.ExecuteReaderAsync();
-            if (await reader.ReadAsync())
-            {
-                return reader.GetGuid(0);
-            }
-        }
-        catch (NpgsqlException ex)
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.AddWithValue("@name", name);
+
+        using var reader = await command.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
         {
-            // Log the exception
-            _logger.LogError(ex, "Error creating user in database");
-        }
-        catch (Exception ex)
-        {
-            // Catch any unexpected exceptions
-            _logger.LogError(ex, "Unexpected error during user creation");
+            return reader.GetGuid(0);
         }
 
         return Guid.Empty;
@@ -68,35 +56,23 @@ public class UserRepositorySQL : IUserRepositorySQL
         string sql = "SELECT id, username, password_hash, salt FROM users WHERE username = @name";
 
         await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
-        try
+
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.AddWithValue("@name", name);
+
+        using var reader = await command.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
         {
-            await connection.OpenAsync();
-
-            await using var command = new NpgsqlCommand(sql, connection);
-            command.Parameters.AddWithValue("@name", name);
-
-            using var reader = await command.ExecuteReaderAsync();
-            if (await reader.ReadAsync())
+            string password_hash = reader.GetString(2);
+            string salt = reader.GetString(3);
+            if (!_passwordService.VerifyPassword(password, password_hash, salt))
             {
-                string password_hash = reader.GetString(2);
-                string salt = reader.GetString(3);
-                if (!_passwordService.VerifyPassword(password, password_hash, salt))
-                {
-                    return null;
-                }
-
-                return new AppUser { Id = reader.GetGuid(0), Username = reader.GetString(1) };
+                return null;
             }
-        }
-        catch (NpgsqlException ex)
-        {
-            // Log the exception
-            _logger.LogError(ex, "Error creating user in database");
-        }
-        catch (Exception ex)
-        {
-            // Catch any unexpected exceptions
-            _logger.LogError(ex, "Unexpected error during user creation");
+
+            return new AppUser { Id = reader.GetGuid(0), Username = reader.GetString(1) };
         }
 
         return null;
@@ -104,53 +80,28 @@ public class UserRepositorySQL : IUserRepositorySQL
 
     public async Task<AppUser?> CreateUserAsync(string username, string password)
     {
-        try
+        if (await GetIdByNameAsync(username) != Guid.Empty)
         {
-            if (await GetIdByNameAsync(username) != Guid.Empty)
-            {
-                return null;
-            }
-
-            var newUser = new AppUser { Id = Guid.NewGuid(), Username = username };
-
-            (string password_hash, string salt) = _passwordService.HashPassword(password);
-            string sql =
-                @"INSERT INTO users (id, username, password_hash, salt) VALUES (@id, @username, @password_hash, @salt)";
-            try
-            {
-                await using var connection = new NpgsqlConnection(
-                    _context.Database.GetConnectionString()
-                );
-                await connection.OpenAsync();
-
-                await using var command = new NpgsqlCommand(sql, connection);
-                command.Parameters.AddWithValue("@id", newUser.Id);
-                command.Parameters.AddWithValue("@username", newUser.Username);
-                command.Parameters.AddWithValue("@password_hash", password_hash);
-                command.Parameters.AddWithValue("@salt", salt);
-
-                await command.ExecuteNonQueryAsync();
-                return newUser;
-            }
-            catch (NpgsqlException ex)
-            {
-                // Log the exception
-                _logger.LogError(ex, "Error creating user in database");
-                return null;
-            }
-            catch (Exception ex)
-            {
-                // Catch any unexpected exceptions
-                _logger.LogError(ex, "Unexpected error during user creation");
-                return null;
-            }
+            throw new Exception("User exists in database.");
         }
-        catch (Exception ex)
-        {
-            // Handle any exceptions in the method (e.g., from GetIdByNameAsync)
-            _logger.LogError(ex, "Error in user creation process");
-            return null;
-        }
+
+        var newUser = new AppUser { Id = Guid.NewGuid(), Username = username };
+
+        (string password_hash, string salt) = _passwordService.HashPassword(password);
+        string sql =
+            @"INSERT INTO users (id, username, password_hash, salt) VALUES (@id, @username, @password_hash, @salt)";
+
+        await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.AddWithValue("@id", newUser.Id);
+        command.Parameters.AddWithValue("@username", newUser.Username);
+        command.Parameters.AddWithValue("@password_hash", password_hash);
+        command.Parameters.AddWithValue("@salt", salt);
+
+        await command.ExecuteNonQueryAsync();
+        return newUser;
     }
 
     Task<IEnumerable<AppUser>> IRepository<AppUser>.GetAllAsync()

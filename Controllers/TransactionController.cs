@@ -27,7 +27,7 @@ public class TransactionController : Controller
         _cacheService = cacheService;
     }
 
-    public async Task<TransactionData> AddTransactionAsync(
+    public async Task<TransactionData?> AddTransactionAsync(
         long amountMinorUnit,
         long accountNumber,
         TransactionType type
@@ -44,7 +44,7 @@ public class TransactionController : Controller
 
         try
         {
-            var user = await _userController.GetCurrentUser();
+            var user = await _userController.GetCurrentUserAsync();
             if (user == null)
             {
                 throw new NullReferenceException("User is null.");
@@ -71,6 +71,7 @@ public class TransactionController : Controller
         {
             Console.WriteLine("" + ex.Message);
         }
+        return null;
     }
 
     public async Task<Result> AddToQueueAsync(
@@ -142,7 +143,7 @@ public class TransactionController : Controller
         // Add transaction to database.
         try
         {
-            var user = await _userController.GetCurrentUser();
+            var user = await _userController.GetCurrentUserAsync();
             if (user == null)
             {
                 Console.WriteLine("user is null.");
@@ -170,7 +171,7 @@ public class TransactionController : Controller
         }
     }
 
-    public async Task<IEnumerable<TransactionData>> GetTransactionList(long accountNumber)
+    public async Task<IEnumerable<TransactionData>> GetTransactionListAsync(long accountNumber)
     {
         try
         {

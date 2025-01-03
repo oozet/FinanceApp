@@ -46,7 +46,7 @@ public class LoginModel : PageModel
             return Page();
         if (ModelState.IsValid)
         {
-            var user = await _userController.SignIn(Username, Password); // TODO: Verify username and password
+            var user = await _userController.SignInAsync(Username, Password); // TODO: Verify username and password
 
             if (user != null)
             {

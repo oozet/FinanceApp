@@ -1,0 +1,54 @@
+@page
+@using FinanceApp.Models; 
+@model ShowAllModel 
+@{
+    ViewData["Title"] = "Show All Transactions";
+} 
+<style> .dropdown { 
+    appearance: none; -webkit-appearance: none; -moz-appearance: none;
+    background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg"><polyline points="20 40, 70 90, 120 40" style="fill:none;stroke:black;stroke-width:16" /></svg>') no-repeat right center;
+    background-position: calc(100% - 10px) center;
+    background-size: 10px;
+    padding-right: 20px; }
+</style>
+
+@{if (Model.Accounts == null || Model.Accounts.Count == 0) { <p>No accounts. Add an account.</p>}
+else if (User.Identity.IsAuthenticated) {
+    if (TempData["SuccessMessage"] != null)
+        { <div class="alert alert-success">@TempData["SuccessMessage"]</div> }
+    if (TempData["ErrorMessage"] != null)
+        { <div class="alert alert-danger">@TempData["ErrorMessage"]</div> }
+
+    <div class="container">
+        <div class="row">
+            <h2>Select account to show transactions</h2>
+            <form method="post">
+            <select asp-for="AccountNumber" id="listSelector">
+                @foreach (var account in Model.Accounts)
+                {
+                    <option value="@account.AccountNumber">@account.AccountNumber</option>
+                }
+            </select>
+            <button type="submit">Get List</button>
+            </form>
+
+            @if(Model.Items.Count > 0){
+            <ul>
+                @foreach (var item in Model.Items)
+                {
+                    <li>@item.AmountMinorUnit</li>
+                }
+            </ul>
+            }
+        </div>
+    </div>
+}
+else{
+
+<div>You need to be logged in to add a transaction.</div>
+    }
+}
+
+@section Scripts { 
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} 
+}

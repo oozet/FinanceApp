@@ -10,14 +10,14 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace FinanceApp.Pages.Finance;
 
 [Authorize]
-public class TransactionEntryModel : PageModel
+public class AddTransactionModel : PageModel
 {
     private readonly TransactionController _transactionController;
     private readonly AccountController _accountController;
 
     public List<Account> Accounts { get; private set; } = new List<Account>();
 
-    public TransactionEntryModel(
+    public AddTransactionModel(
         TransactionController transactionController,
         AccountController accountController
     )
@@ -51,7 +51,7 @@ public class TransactionEntryModel : PageModel
         var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
         if (userId != null)
         {
-            Accounts = await _accountController.GetUserAccounts(userId);
+            Accounts = await _accountController.GetUserAccountsAsync(userId);
             TempData["Accounts"] = JsonSerializer.Serialize(Accounts);
         }
     }

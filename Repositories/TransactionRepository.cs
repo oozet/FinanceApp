@@ -24,7 +24,7 @@ public class TransactionRepository : Repository<TransactionData>
                 
                 UPDATE accounts
                 SET balance_minor_unit = balance_minor_unit + (@amount_minor_unit * (CASE WHEN @transaction_type = 'deposit' THEN 1 ELSE -1 END))
-                WHERE account_number = @account_number;
+                WHERE account_number = @account_number AND balance_minor_unit <= @amount_minor_unit;
                 COMMIT;
                 ";
             await using var connection = new NpgsqlConnection(
@@ -122,5 +122,35 @@ public class TransactionRepository : Repository<TransactionData>
         return await command.ExecuteNonQueryAsync();
     }
 
-    public async Task<IEnumerable<TransactionData>> GetAllFromAccountAsync(long accountNumber) { }
+    public async Task<IEnumerable<TransactionData>> GetAllFromAccountAsync(long accountNumber)
+    {
+        string sql =
+            "SELECT * FROM transactions WHERE account_number = @account_number AND deleted_at IS NULL";
+
+        await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
+
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.AddWithValue("@account_number", accountNumber);
+
+        using var reader = await command.ExecuteReaderAsync();
+
+        var transactions = new List<TransactionData>();
+        while (await reader.ReadAsync())
+        {
+            transactions.Add(
+                new()
+                {
+                    Id = reader.GetGuid(0),
+                    AmountMinorUnit = reader.GetInt64(1),
+                    AccountNumber = reader.GetInt64(2),
+                    TransactionType = (TransactionType)
+                        Enum.Parse(typeof(TransactionType), reader.GetString(3), true),
+                    CreatedAt = reader.GetDateTime(4),
+                }
+            );
+        }
+        return transactions;
+    }
 }

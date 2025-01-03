@@ -42,7 +42,7 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddScoped<TransactionController>();
         builder.Services.AddScoped<PasswordService>();
         builder.Services.AddScoped<IUserRepositorySQL, UserRepositorySQL>();
-        builder.Services.AddScoped<IAccountRepositorySQL, AccountRepositorySQL>();
+        builder.Services.AddScoped<AccountRepositorySQL>();
         builder.Services.AddScoped<TransactionRepository>();
         builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 

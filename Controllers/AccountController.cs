@@ -26,10 +26,10 @@ public class AccountController : Controller
         _cacheService = cacheService;
     }
 
-    public async Task<Account?> CreateAccount(AccountType type)
+    public async Task<Account?> CreateAccountAsync(AccountType type)
     {
         Console.WriteLine("Trying to CreateAccount");
-        var user = await _userController.GetCurrentUser();
+        var user = await _userController.GetCurrentUserAsync();
         Console.WriteLine("Got user.");
         if (user == null)
         {
@@ -43,7 +43,7 @@ public class AccountController : Controller
         return account;
     }
 
-    public async Task<List<Account>> GetUserAccounts(string userId)
+    public async Task<List<Account>> GetUserAccountsAsync(string userId)
     {
         return await _accountRepository.GetAllAccountsAsync(userId);
     }

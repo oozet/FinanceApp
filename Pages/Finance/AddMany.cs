@@ -52,7 +52,7 @@ public class AddManyModel : PageModel
         var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
         if (userId != null)
         {
-            Accounts = await _accountController.GetUserAccounts(userId);
+            Accounts = await _accountController.GetUserAccountsAsync(userId);
             TempData["Accounts"] = JsonSerializer.Serialize(Accounts);
         }
     }
