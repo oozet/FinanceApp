@@ -153,4 +153,45 @@ public class TransactionRepository : Repository<TransactionData>
         }
         return transactions;
     }
+
+    public async Task<List<TransactionData>> GetTransactionsBetweenDatesAsync(
+        DateTime startDate,
+        DateTime endDate,
+        long accountNumber
+    )
+    {
+        string sql =
+            @"SELECT * FROM transactions
+                WHERE created_at >= @StartDate AND created_at <= @EndDate
+                AND account_number = @AccountNumber
+                AND deleted_at IS NULL";
+
+        await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
+
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.AddWithValue("@StartDate", startDate);
+        command.Parameters.AddWithValue("@EndDate", endDate);
+        command.Parameters.AddWithValue("@AccountNumber", accountNumber);
+
+        using var reader = await command.ExecuteReaderAsync();
+
+        var transactions = new List<TransactionData>();
+        while (await reader.ReadAsync())
+        {
+            transactions.Add(
+                new()
+                {
+                    Id = reader.GetGuid(0),
+                    AmountMinorUnit = reader.GetInt64(1),
+                    AccountNumber = reader.GetInt64(2),
+                    TransactionType = (TransactionType)
+                        Enum.Parse(typeof(TransactionType), reader.GetString(3), true),
+                    CreatedAt = reader.GetDateTime(4),
+                }
+            );
+        }
+        return transactions;
+    }
 }

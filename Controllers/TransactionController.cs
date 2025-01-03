@@ -187,4 +187,29 @@ public class TransactionController : Controller
         }
         return [];
     }
+
+    public async Task<List<TransactionData>> GetTransactionListBetweenDatesAsync(
+        DateTime startDate,
+        DateTime endDate,
+        long accountNumber
+    )
+    {
+        try
+        {
+            return await _transactionRepository.GetTransactionsBetweenDatesAsync(
+                startDate,
+                endDate,
+                accountNumber
+            );
+        }
+        catch (NpgsqlException ex)
+        {
+            Console.WriteLine("Database error: " + ex.Message);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Other error: " + ex.Message);
+        }
+        return [];
+    }
 }

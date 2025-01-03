@@ -33,7 +33,7 @@ public class ShowAllModel : PageModel
     [BindProperty]
     public long AccountNumber { get; set; }
     public List<TransactionData> Items { get; set; } = [];
-    public List<Account> Accounts { get; private set; }
+    public List<Account> Accounts { get; set; }
 
     public async Task<IActionResult> OnGetAsync(string? returnUrl = null)
     {
@@ -57,6 +57,7 @@ public class ShowAllModel : PageModel
             Console.WriteLine(account.AmountMinorUnit);
         }
         ViewData["Transactions"] = Items;
+        TempData["ErrorMessage"] = "No transactions made in account.";
 
         return Page();
     }

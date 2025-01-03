@@ -19,6 +19,11 @@ public partial class TransactionData
 
     // Not using lazy loading and proxies
     //public virtual Account AccountNumberNavigation { get; set; } = null!;
+
+    public float Amount
+    {
+        get { return AmountMinorUnit / 100; }
+    }
 }
 
 public enum TransactionType

@@ -14,10 +14,6 @@
 
 @{if (Model.Accounts == null || Model.Accounts.Count == 0) { <p>No accounts. Add an account.</p>}
 else if (User.Identity.IsAuthenticated) {
-    if (TempData["SuccessMessage"] != null)
-        { <div class="alert alert-success">@TempData["SuccessMessage"]</div> }
-    if (TempData["ErrorMessage"] != null)
-        { <div class="alert alert-danger">@TempData["ErrorMessage"]</div> }
 
     <div class="container">
         <div class="row">
@@ -39,6 +35,10 @@ else if (User.Identity.IsAuthenticated) {
                     <li>@item.AmountMinorUnit</li>
                 }
             </ul>
+            }
+            else{
+                if (TempData["ErrorMessage"] != null)
+        { <div class="alert alert-danger">@TempData["ErrorMessage"]</div> }
             }
         </div>
     </div>

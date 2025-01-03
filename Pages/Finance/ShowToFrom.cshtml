@@ -1,0 +1,69 @@
+@page
+@model ShowToFromModel
+@{
+    ViewData["Title"] = "Transactions";
+    var currentDate = DateTime.Now.ToString("yyyy-MM-dd");
+}
+
+<h2>List transactions</h2>
+<p>If you, like me are using firefox, month and week picker won't work. Input as text with the correct format.</p>
+<div class="container">
+<form method="post">
+    <div>
+        <label asp-for="StartDate">Start Date:</label>
+        <input asp-for="StartDate" type="date" value=@currentDate min="1900-01-01" max="2100-12-31"/>
+    </div>
+    <div>
+        <label asp-for="EndDate">End Date:</label>
+        <input asp-for="EndDate" type="date" value=@currentDate min="1900-01-01" max="2100-12-31"/>
+    </div>
+    <div>
+        <label asp-for="AccountNumber">Account Number:</label>
+        <select asp-for="AccountNumber" id="listSelector">
+            @foreach (var account in Model.Accounts)
+            {
+                <option value="@account.AccountNumber">@account.AccountNumber</option>
+            }
+        </select>
+    </div>
+    <button type="submit" value="between">Submit</button>
+</form>
+<div>
+<form method="post">
+    <div>
+        <label for="monthYear">Month and Year:</label>
+        <input type="month" id="monthYear" name="monthYear" value="2025-01">
+    </div>
+    <button type="submit" value="month">Submit</button>
+</form>
+</div>
+<div>
+<form method="post">
+    <div>
+        <label for="week">Week Number:</label>
+        <input type="week" id="week" name="week" value="2025-W1">
+    </div>
+    <button type="submit" value="week">Submit</button>
+</form>
+</div>
+</div>
+
+@if(Model.Transactions == null){
+    <div>Submit from and to date to show transactions.</div>
+} 
+else if(Model.Transactions.Count > 0)
+{
+    <div>
+        <h3>Transactions from @Model.StartDate.ToShortDateString() to @Model.EndDate.ToShortDateString()</h3>
+        <ul>
+            @foreach (var transaction in Model.Transactions)
+            {
+                <li>@transaction.Amount - @transaction.AccountNumber - @transaction.CreatedAt.ToShortDateString()</li>
+            }
+        </ul>
+    </div>
+}
+else
+{
+    <p>No transactions found for the specified date range.</p>
+}

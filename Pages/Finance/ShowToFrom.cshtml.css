@@ -1,0 +1,12 @@
+.container {
+    display: flex;
+    justify-content: space-around;
+    padding: 20px;
+}
+.form-section {
+    flex: 1;
+    margin: 10px;
+    border: 1px solid #ccc;
+    padding: 20px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+}
