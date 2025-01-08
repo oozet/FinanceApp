@@ -204,12 +204,51 @@ public class TransactionController : Controller
         }
         catch (NpgsqlException ex)
         {
-            Console.WriteLine("Database error: " + ex.Message);
+            Console.WriteLine(
+                "Database error in GetTransactionListBetweenDatesAsync: " + ex.Message
+            );
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Other error: " + ex.Message);
+            Console.WriteLine("Other error in GetTransactionListBetweenDatesAsync: " + ex.Message);
         }
         return [];
+    }
+
+    public async Task DeleteTransactionAsync(TransactionData entity)
+    {
+        try
+        {
+            entity.DeletedAt = DateTime.Now;
+            Console.WriteLine(entity);
+            await _transactionRepository.UpdateAsync(entity);
+        }
+        catch (NpgsqlException ex)
+        {
+            Console.WriteLine("Database error in DeleteTransaction: " + ex.Message);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Other error in DeleteTransaction: " + ex.Message);
+        }
+
+        return;
+    }
+
+    public async Task<TransactionData> GetTransactionByIdAsync(Guid id)
+    {
+        try
+        {
+            return await _transactionRepository.GetByIdAsync(id);
+        }
+        catch (NpgsqlException ex)
+        {
+            Console.WriteLine("Database error in GetTransactionByIdAsync: " + ex.Message);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Other error in GetTransactionByIdAsync: " + ex.Message);
+        }
+        return null;
     }
 }

@@ -34,55 +34,33 @@ public class AccountRepositorySQL : IAccountRepositorySQL
     // Note: Not checking for valid Guid. Will it ever be invalid?
     public async Task<Account> CreateAccountAsync(AccountType accountType, Guid userId)
     {
-        try
-        {
-            string sql =
-                @"INSERT INTO accounts (user_id, account_type) VALUES (@user_id, @type::account_type) RETURNING *";
-            try
-            {
-                await using var connection = new NpgsqlConnection(
-                    _context.Database.GetConnectionString()
-                );
-                await connection.OpenAsync();
+        _logger.LogDebug("Where can I find logs?", accountType, userId);
 
-                await using var command = new NpgsqlCommand(sql, connection);
-                command.Parameters.AddWithValue("@user_id", userId);
-                command.Parameters.AddWithValue("@type", accountType.ToString().ToLower());
+        string sql =
+            @"INSERT INTO accounts (user_id, account_type) VALUES (@user_id, @type::account_type) RETURNING *";
 
-                await using var reader = await command.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
-                {
-                    return new Account
-                    {
-                        AccountNumber = reader.GetInt64(0),
-                        UserId = reader.GetGuid(1),
-                        BalanceMinorUnit = reader.GetInt64(2),
-                        AccountType = (AccountType)
-                            Enum.Parse(typeof(AccountType), reader.GetString(3), true),
-                        CreatedAt = reader.GetDateTime(4),
-                    };
-                }
-            }
-            catch (NpgsqlException ex)
-            {
-                // Log the exception
-                _logger.LogError(ex, "Error creating user in database");
-                return null;
-            }
-            catch (Exception ex)
-            {
-                // Catch any unexpected exceptions
-                _logger.LogError(ex, "Unexpected error during user creation");
-                return null;
-            }
-        }
-        catch (Exception ex)
+        await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.AddWithValue("@user_id", userId);
+        command.Parameters.AddWithValue("@type", accountType.ToString().ToLower());
+
+        await using var reader = await command.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
         {
-            // Handle any exceptions in the method (e.g., from GetIdByNameAsync)
-            _logger.LogError(ex, "Error in user creation process");
-            return null;
+            return new Account
+            {
+                AccountNumber = reader.GetInt64(0),
+                UserId = reader.GetGuid(1),
+                BalanceMinorUnit = reader.GetInt64(2),
+                AccountType = (AccountType)
+                    Enum.Parse(typeof(AccountType), reader.GetString(3), true),
+                CreatedAt = reader.GetDateTime(4),
+            };
         }
-        return null;
+
+        throw new Exception("Unable to create account. reader contains nothing.");
     }
 
     public Task DeleteAsync(Account entity)
@@ -105,42 +83,28 @@ public class AccountRepositorySQL : IAccountRepositorySQL
         var accounts = new List<Account>();
 
         await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
-        try
-        {
-            await connection.OpenAsync();
 
-            await using var command = new NpgsqlCommand(sql, connection);
-            command.Parameters.AddWithValue("@user_id", userGuid);
+        await connection.OpenAsync();
 
-            await using var reader = await command.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
-            {
-                accounts.Add(
-                    new Account
-                    {
-                        AccountNumber = reader.GetInt64(0),
-                        UserId = reader.GetGuid(1),
-                        BalanceMinorUnit = reader.GetInt64(2),
-                        AccountType = (AccountType)
-                            Enum.Parse(typeof(AccountType), reader.GetString(3), true),
-                        CreatedAt = reader.GetDateTime(4),
-                    }
-                );
-            }
-            return accounts;
-        }
-        catch (NpgsqlException ex)
-        {
-            // Log the exception
-            _logger.LogError(ex, "Error creating user in database");
-        }
-        catch (Exception ex)
-        {
-            // Catch any unexpected exceptions
-            _logger.LogError(ex, "Unexpected error during user creation");
-        }
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.AddWithValue("@user_id", userGuid);
 
-        return null;
+        await using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            accounts.Add(
+                new Account
+                {
+                    AccountNumber = reader.GetInt64(0),
+                    UserId = reader.GetGuid(1),
+                    BalanceMinorUnit = reader.GetInt64(2),
+                    AccountType = (AccountType)
+                        Enum.Parse(typeof(AccountType), reader.GetString(3), true),
+                    CreatedAt = reader.GetDateTime(4),
+                }
+            );
+        }
+        return accounts;
     }
 
     public Task<IEnumerable<Account>> GetAllAsync()
@@ -158,41 +122,27 @@ public class AccountRepositorySQL : IAccountRepositorySQL
         string sql = "SELECT * FROM accounts WHERE id = @account_number";
 
         await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
-        try
+
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.AddWithValue("@account_number", accountNumber);
+
+        await using var reader = await command.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
         {
-            await connection.OpenAsync();
-
-            await using var command = new NpgsqlCommand(sql, connection);
-            command.Parameters.AddWithValue("@account_number", accountNumber);
-
-            await using var reader = await command.ExecuteReaderAsync();
-            if (await reader.ReadAsync())
+            return new Account
             {
-                return new Account
-                {
-                    AccountNumber = reader.GetInt64(0),
-                    UserId = reader.GetGuid(1),
-                    BalanceMinorUnit = reader.GetInt64(2),
-                    AccountType = (AccountType)
-                        Enum.Parse(typeof(AccountType), reader.GetString(3), true),
-                    CreatedAt = reader.GetDateTime(4),
-                };
-            }
-            else
-                return null;
-        }
-        catch (NpgsqlException ex)
-        {
-            // Log the exception
-            _logger.LogError(ex, "Error creating user in database");
-        }
-        catch (Exception ex)
-        {
-            // Catch any unexpected exceptions
-            _logger.LogError(ex, "Unexpected error during user creation");
+                AccountNumber = reader.GetInt64(0),
+                UserId = reader.GetGuid(1),
+                BalanceMinorUnit = reader.GetInt64(2),
+                AccountType = (AccountType)
+                    Enum.Parse(typeof(AccountType), reader.GetString(3), true),
+                CreatedAt = reader.GetDateTime(4),
+            };
         }
 
-        return null;
+        throw new NullReferenceException($"No account with number: {accountNumber}");
     }
 
     public Task UpdateAsync(Account entity)

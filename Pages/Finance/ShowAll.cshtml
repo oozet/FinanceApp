@@ -12,9 +12,10 @@
     padding-right: 20px; }
 </style>
 
-@{if (Model.Accounts == null || Model.Accounts.Count == 0) { <p>No accounts. Add an account.</p>}
-else if (User.Identity.IsAuthenticated) {
-
+@{
+if (Model.Accounts == null || Model.Accounts.Count == 0) { <p>No accounts. Add an account.</p>}
+else if (User.Identity.IsAuthenticated)
+{
     <div class="container">
         <div class="row">
             <h2>Select account to show transactions</h2>
@@ -45,8 +46,14 @@ else if (User.Identity.IsAuthenticated) {
 }
 else{
 
-<div>You need to be logged in to add a transaction.</div>
+    <div>You need to be logged in to add a transaction.</div>
     }
+    if(TempData["ErrorMessage"] != null)
+    {
+        <div>@TempData["ErrorMessage"]</div>
+    }
+
+    
 }
 
 @section Scripts { 

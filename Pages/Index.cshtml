@@ -5,6 +5,10 @@
     ViewData["Title"] = "Finance App";
 }
 
+@if(TempData["Success"] != null)
+{
+    <div class="alert-success">@TempData["SuccessMessage"]</div>
+}
 
 @if (User?.Identity?.IsAuthenticated ?? false){
     <div class="text-center">
@@ -19,12 +23,18 @@
     </ul>
     </div>
     <div>
-        <a class="nav-link px-3" href="/Finance/CreateAccount">Create an account</a>}
+        <a class="nav-link px-3" href="/Finance/CreateAccount">Create an account</a>
     </div>
 }
 else{
     <div class="text-center">
         <h1 class="display-4">Welcome</h1>
-        <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+        <div>
+            To create an account with admin/password and populate the database with 1000 transactions, click the button
+            <form method="post" asp-page-handler="Populate">
+            <button type="submit" id="populateButton">Call Populate Method</button>
+            </form>
+        </div>
+        <div>Otherwise you can register an account here: <a href="/Finance/CreateAccount">Create an account</a> and manually add bankaccounts and transactions.</div>
     </div>
 }

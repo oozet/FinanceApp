@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Claims;
 using FinanceApp.Controllers;
 using FinanceApp.Models;
@@ -33,8 +34,14 @@ public class ShowToFromModel : PageModel
     [BindProperty]
     public long AccountNumber { get; set; }
 
+    [BindProperty]
+    public string TransactionId { get; set; }
+
     public List<TransactionData> Transactions { get; set; }
     public List<Account> Accounts { get; set; }
+
+    [TempData]
+    public string ErrorMessage { get; set; } = string.Empty;
 
     public async Task OnGetAsync()
     {
@@ -52,43 +59,25 @@ public class ShowToFromModel : PageModel
         switch (form)
         {
             case "between":
-                GetBetweenDates();
+                Transactions = await GetBetweenDatesAsync();
+                Console.WriteLine("Got between: " + Transactions.Count);
                 break;
 
             case "month":
-                GetMonth();
+                Transactions = await GetMonthAsync();
                 break;
 
             case "week":
-                GetWeek();
+                Console.WriteLine("week: " + AccountNumber);
+                Transactions = await GetWeekAsync();
+                Console.WriteLine("Got between: " + Transactions.Count);
                 break;
 
             default:
+                Transactions = [];
+                ErrorMessage = "Invalid form.";
                 break;
         }
-        if (
-            DateTime.TryParseExact(
-                MonthYear,
-                "yyyy-MM",
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.None,
-                out DateTime parsedMonthYear
-            )
-        ) { }
-        if (
-            DateTime.TryParseExact(
-                Week + "-1",
-                "yyyy-'W'ww-e",
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.None,
-                out DateTime parsedWeek
-            )
-        ) { }
-        Transactions = await _transactionController.GetTransactionListBetweenDatesAsync(
-            StartDate,
-            EndDate,
-            AccountNumber
-        );
 
         var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
@@ -97,5 +86,108 @@ public class ShowToFromModel : PageModel
             Accounts = await _accountController.GetUserAccountsAsync(userId);
         }
         return Page();
+    }
+
+    public async Task<IActionResult> OnPostDeleteAsync()
+    {
+        Console.WriteLine("OnPostDeleteAsync reached.");
+        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+        if (userId != null)
+        {
+            Accounts = await _accountController.GetUserAccountsAsync(userId);
+        }
+
+        if (!Guid.TryParse(TransactionId, out Guid id))
+        {
+            ErrorMessage = "id failed to parse to Guid.";
+            return RedirectToPage();
+        }
+
+        var entity = await _transactionController.GetTransactionByIdAsync(id);
+
+        if (entity == null)
+        {
+            ErrorMessage = "Error: delete malfunction.";
+            return RedirectToPage();
+        }
+
+        await _transactionController.DeleteTransactionAsync(entity);
+
+        TempData["SuccessMessage"] = $"Transaction with id {entity.Id} deleted successfully.";
+        return RedirectToPage();
+    }
+
+    public async Task<List<TransactionData>> GetBetweenDatesAsync()
+    {
+        EndDate = EndDate.AddHours(23).AddMinutes(59).AddSeconds(59).AddMilliseconds(999);
+        Console.WriteLine($"{StartDate}, {EndDate}, {AccountNumber}");
+        var trans = await _transactionController.GetTransactionListBetweenDatesAsync(
+            StartDate,
+            EndDate,
+            AccountNumber
+        );
+        Console.WriteLine("Count: " + trans.Count);
+        return trans;
+    }
+
+    public async Task<List<TransactionData>> GetMonthAsync()
+    {
+        if (
+            DateTime.TryParseExact(
+                MonthYear,
+                "yyyy-MM",
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out DateTime parsedMonthYear
+            )
+        )
+        {
+            Console.WriteLine(
+                $"Month year: {parsedMonthYear}, +1 month {parsedMonthYear.AddMonths(1)}, {AccountNumber}"
+            );
+            StartDate = parsedMonthYear;
+            EndDate = parsedMonthYear
+                .AddMonths(1)
+                .AddDays(-1)
+                .AddHours(23)
+                .AddMinutes(59)
+                .AddSeconds(59)
+                .AddMilliseconds(999);
+            ;
+
+            return await _transactionController.GetTransactionListBetweenDatesAsync(
+                StartDate,
+                EndDate,
+                AccountNumber
+            );
+        }
+        ErrorMessage = "Invalid Year/Month format.";
+        return [];
+    }
+
+    public async Task<List<TransactionData>> GetWeekAsync()
+    {
+        int year = int.Parse(Week[..4]);
+        if (!int.TryParse(Week[6..], out int week))
+        {
+            ErrorMessage = "Invalid week format.";
+            return [];
+        }
+
+        StartDate = ISOWeek.ToDateTime(year, week, DayOfWeek.Monday);
+        EndDate = StartDate
+            .AddDays(6)
+            .AddHours(23)
+            .AddMinutes(59)
+            .AddSeconds(59)
+            .AddMilliseconds(999);
+        ;
+
+        return await _transactionController.GetTransactionListBetweenDatesAsync(
+            StartDate,
+            EndDate,
+            AccountNumber
+        );
     }
 }

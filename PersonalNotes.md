@@ -14,3 +14,14 @@ if (user != null)
         // User is authenticated
     }
 }
+
+
+        <div>
+            <label asp-for="AccountNumber">Account Number:</label>
+            <select asp-for="AccountNumber" id="listSelector">
+                @foreach (var account in Model.Accounts)
+                {
+                    <option value="@account.AccountNumber">@account.AccountNumber</option>
+                }
+            </select>
+        </div>

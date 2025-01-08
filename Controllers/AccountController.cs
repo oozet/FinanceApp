@@ -4,10 +4,11 @@ using FinanceApp.Repositories;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace FinanceApp.Controllers;
 
-//[ApiController]
 public class AccountController : Controller
 {
     private readonly AccountRepositorySQL _accountRepository;
@@ -28,40 +29,109 @@ public class AccountController : Controller
 
     public async Task<Account?> CreateAccountAsync(AccountType type)
     {
-        Console.WriteLine("Trying to CreateAccount");
-        var user = await _userController.GetCurrentUserAsync();
-        Console.WriteLine("Got user.");
-        if (user == null)
+        try
         {
-            Console.WriteLine("user is null.");
-            throw new Exception("No user ");
+            var user = await _userController.GetCurrentUserAsync();
+
+            if (user == null)
+            {
+                Console.WriteLine("user is null.");
+                throw new Exception("No user ");
+            }
+            Console.WriteLine("Trying to create account.");
+            Account account = await _accountRepository.CreateAccountAsync(type, user.Id);
+            string cacheKey = KEY_PREFIX + account.AccountNumber.ToString();
+            _cacheService.Set(cacheKey, account);
+            return account;
         }
-        Console.WriteLine("Trying to create account.");
-        Account account = await _accountRepository.CreateAccountAsync(type, user.Id);
-        string cacheKey = KEY_PREFIX + account.AccountNumber.ToString();
-        _cacheService.Set(cacheKey, account);
-        return account;
+        catch (NpgsqlException ex)
+        {
+            Console.WriteLine("Error creating account in database" + ex.ToString());
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Unexpected error during account creating" + ex.ToString());
+        }
+        return null;
     }
 
     public async Task<List<Account>> GetUserAccountsAsync(string userId)
     {
-        return await _accountRepository.GetAllAccountsAsync(userId);
+        try
+        {
+            return await _accountRepository.GetAllAccountsAsync(userId);
+        }
+        catch (NpgsqlException ex)
+        {
+            Console.WriteLine(
+                $"Database error getting all accounts of user:  {userId}" + ex.ToString()
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(
+                $"Unexpected error trying to get all accounts from user: {userId}" + ex.ToString()
+            );
+        }
+        return [];
     }
 
     public async Task<float> GetBalance(long accountNumber)
     {
-        string cacheKey = KEY_PREFIX + accountNumber.ToString();
-        if (_cacheService.TryGetValue(cacheKey, out Account? account))
+        try
         {
-            return account!.BalanceMinorUnit / 100;
-        }
-        account = await _accountRepository.GetAsync(accountNumber);
+            string cacheKey = KEY_PREFIX + accountNumber.ToString();
+            if (_cacheService.TryGetValue(cacheKey, out Account? account))
+            {
+                return account!.BalanceMinorUnit / 100;
+            }
+            account = await _accountRepository.GetAsync(accountNumber);
 
-        if (account == null)
+            if (account == null)
+            {
+                throw new Exception("Account not found.");
+            }
+
+            return account.BalanceMinorUnit / 100;
+        }
+        catch (NpgsqlException ex)
         {
-            throw new Exception("Account not found.");
+            Console.WriteLine(
+                $"Database error getting balance of account:  {accountNumber}" + ex.ToString()
+            );
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine(
+                $"Unexpected error getting balance of account:  {accountNumber}" + ex.ToString()
+            );
+        }
+        return 0;
+    }
 
-        return account.BalanceMinorUnit / 100;
+    public async Task<Account?> CreateDebugAccountAsync(AppUser user, AccountType type)
+    {
+        try
+        {
+            if (user == null)
+            {
+                Console.WriteLine("user is null.");
+                throw new Exception("No user ");
+            }
+
+            Account account = await _accountRepository.CreateAccountAsync(type, user.Id);
+            string cacheKey = KEY_PREFIX + account.AccountNumber.ToString();
+            _cacheService.Set(cacheKey, account);
+            return account;
+        }
+        catch (NpgsqlException ex)
+        {
+            Console.WriteLine("Database error creating account for debugging: " + ex.ToString());
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Unexpected errorcreating account for debugging: " + ex.ToString());
+        }
+        return null;
     }
 }

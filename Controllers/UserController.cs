@@ -30,7 +30,6 @@ public class UserController : Controller
     {
         var currentUser = _httpContextAccessor.HttpContext!.User;
 
-        //
         if (currentUser == null)
         {
             Console.WriteLine("User not authenticated.");

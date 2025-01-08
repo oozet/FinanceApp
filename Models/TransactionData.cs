@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace FinanceApp.Models;
 
@@ -23,6 +24,18 @@ public partial class TransactionData
     public float Amount
     {
         get { return AmountMinorUnit / 100; }
+    }
+
+    public override string ToString()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.AppendLine("Id: " + Id.ToString());
+        sb.AppendLine("Amount in minor unit: " + AmountMinorUnit);
+        sb.AppendLine("Account number: " + AccountNumber);
+        sb.AppendLine("Transaction type: " + TransactionType.ToString());
+        sb.AppendLine("Created at: " + CreatedAt.ToString());
+        sb.AppendLine("Deleted at: " + DeletedAt.ToString());
+        return sb.ToString();
     }
 }
 

@@ -14,10 +14,8 @@ public class TransactionRepository : Repository<TransactionData>
 
     public async Task<int> AddAsync(TransactionData entity)
     {
-        try
-        {
-            string sql =
-                @"
+        string sql =
+            @"
                 BEGIN;
                 INSERT INTO transactions (id, amount_minor_unit, account_number, transaction_type, created_at)
                 VALUES (@id, @amount_minor_unit, @account_number, @transaction_type::transaction_type, @created_at);
@@ -27,50 +25,29 @@ public class TransactionRepository : Repository<TransactionData>
                 WHERE account_number = @account_number AND balance_minor_unit <= @amount_minor_unit;
                 COMMIT;
                 ";
-            await using var connection = new NpgsqlConnection(
-                _context.Database.GetConnectionString()
-            );
-            await connection.OpenAsync();
+        await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
+        await connection.OpenAsync();
 
-            await using var command = new NpgsqlCommand(sql, connection);
-            command.Parameters.AddWithValue("@id", entity.Id);
-            command.Parameters.AddWithValue("@amount_minor_unit", entity.AmountMinorUnit);
-            command.Parameters.AddWithValue("@account_number", entity.AccountNumber);
-            command.Parameters.AddWithValue(
-                "@transaction_type",
-                entity.TransactionType.ToString().ToLower()
-            );
-            command.Parameters.AddWithValue("@created_at", entity.CreatedAt);
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.AddWithValue("@id", entity.Id);
+        command.Parameters.AddWithValue("@amount_minor_unit", entity.AmountMinorUnit);
+        command.Parameters.AddWithValue("@account_number", entity.AccountNumber);
+        command.Parameters.AddWithValue(
+            "@transaction_type",
+            entity.TransactionType.ToString().ToLower()
+        );
+        command.Parameters.AddWithValue("@created_at", entity.CreatedAt);
 
-            // To add or remove from account balance.
-            long balanceAmount = entity.AmountMinorUnit;
+        // To add or remove from account balance.
+        long balanceAmount = entity.AmountMinorUnit;
 
-            if (entity.TransactionType == TransactionType.Withdrawal)
-            {
-                balanceAmount = -balanceAmount;
-            }
-            command.Parameters.AddWithValue("@amount_minor_unit_transactiontype", balanceAmount);
-
-            return await command.ExecuteNonQueryAsync();
-        }
-        catch (NpgsqlException ex)
+        if (entity.TransactionType == TransactionType.Withdrawal)
         {
-            // Handle my custom transaction error.
-            if (ex.SqlState == "P4269")
-            {
-                Console.WriteLine("My transaction failed. DEBUG: " + ex.Message);
-                _logger.LogError(ex.Message);
-            }
-            // Log the exception
-            _logger.LogError(ex, "Error creating transaction in database");
-            return 0;
+            balanceAmount = -balanceAmount;
         }
-        catch (Exception ex)
-        {
-            // Catch any unexpected exceptions
-            _logger.LogError(ex, "Unexpected error during transaction creation");
-            return 0;
-        }
+        command.Parameters.AddWithValue("@amount_minor_unit_transactiontype", balanceAmount);
+
+        return await command.ExecuteNonQueryAsync();
     }
 
     public async Task<int> AddTransactionEntriesAsync(List<TransactionData> entities)
@@ -193,5 +170,31 @@ public class TransactionRepository : Repository<TransactionData>
             );
         }
         return transactions;
+    }
+
+    public async Task UpdateAsync(TransactionData entity)
+    {
+        string sql =
+            @"UPDATE transactions SET account_number = @p0, amount_minor_unit = @p1, created_at = @p2, deleted_at = @p3, transaction_type = @p4::transaction_type
+                WHERE id = @p5";
+
+        await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
+
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.AddWithValue("@p0", entity.AccountNumber);
+        command.Parameters.AddWithValue("@p1", entity.AmountMinorUnit);
+        command.Parameters.AddWithValue("@p2", entity.CreatedAt);
+        command.Parameters.AddWithValue("@p3", entity.DeletedAt);
+        command.Parameters.AddWithValue("@p4", entity.TransactionType.ToString().ToLower());
+        command.Parameters.AddWithValue("@p5", entity.Id);
+
+        int result = await command.ExecuteNonQueryAsync();
+        if (result == 0)
+        {
+            throw new Exception("Unable to update entry.");
+        }
+        return;
     }
 }

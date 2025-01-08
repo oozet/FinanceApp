@@ -112,7 +112,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .Property(e => e.AccountType)
                 .HasColumnName("account_type")
                 .HasConversion(
-                    v => v.ToString(),
+                    v => v.ToString().ToLower(),
                     v => (AccountType)Enum.Parse(typeof(AccountType), v, true)
                 )
                 .HasColumnType("account_type");

@@ -45,9 +45,14 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddScoped<AccountRepositorySQL>();
         builder.Services.AddScoped<TransactionRepository>();
         builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+        builder.Services.AddScoped<PopulateDb>();
 
         // Added logging.
-        builder.Services.AddLogging();
+        builder.Services.AddLogging(logging =>
+        {
+            logging.AddConsole();
+            logging.AddDebug();
+        });
 
         // Need ControllersWithViews?
         //builder.Services.AddControllersWithViews();
@@ -69,6 +74,9 @@ public static class WebApplicationBuilderExtensions
 
             // Set up account numbers.
             context.EnsureDatabaseSetup();
+
+            // Setting up PopulateDb service.
+            var populateDb = services.GetRequiredService<PopulateDb>();
         }
 
         // Setting up custom error page including status code errors.
