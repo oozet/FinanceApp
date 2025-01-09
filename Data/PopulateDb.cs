@@ -26,17 +26,14 @@ public class PopulateDb
 
     public async Task Populate(int count)
     {
-        AppUser user = await _userController.SignInAsync("admin", "password");
+        var user = await _userController.SignInAsync("admin", "password");
 
         if (user == null)
         {
             user = await _userController.CreateUser("admin", "password");
         }
 
-        Account account = await _accountController.CreateDebugAccountAsync(
-            user,
-            AccountType.Business
-        );
+        var account = await _accountController.CreateDebugAccountAsync(user, AccountType.Business);
         long accountNumber = account.AccountNumber;
 
         var transactions = new List<TransactionData>();
@@ -53,9 +50,9 @@ public class PopulateDb
             DateTime randomDate = startDate + randomSpan;
 
             random.Next(0, 1);
-            TransactionType transactionType = (TransactionType)random.Next(0, 1);
+            TransactionType transactionType = (TransactionType)random.Next(0, 2);
 
-            if (totalAmount - amountMinorUnit < 0)
+            if ((totalAmount - amountMinorUnit) < 0)
             {
                 transactionType = TransactionType.Deposit;
             }

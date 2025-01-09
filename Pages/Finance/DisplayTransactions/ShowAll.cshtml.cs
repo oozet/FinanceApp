@@ -54,7 +54,16 @@ public class ShowAllModel : PageModel
         Items = list.ToList();
 
         ViewData["Transactions"] = Items;
-        TempData["ErrorMessage"] = "No transactions made in account.";
+        if (!(list.Count() > 0))
+        {
+            TempData["ErrorMessage"] = "No transactions made in account.";
+        }
+
+        var currentAccount = Accounts.Find(a => a.AccountNumber == AccountNumber);
+        if (currentAccount != null)
+        {
+            TempData["Balance"] = (currentAccount.BalanceMinorUnit / 100).ToString();
+        }
 
         return Page();
     }

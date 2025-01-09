@@ -84,6 +84,11 @@ public class ShowToFromModel : PageModel
         if (userId != null)
         {
             Accounts = await _accountController.GetUserAccountsAsync(userId);
+            var currentAccount = Accounts.Find(a => a.AccountNumber == AccountNumber);
+            if (currentAccount != null)
+            {
+                TempData["Balance"] = (currentAccount.BalanceMinorUnit / 100).ToString();
+            }
         }
         return Page();
     }

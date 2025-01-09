@@ -22,7 +22,7 @@ public class TransactionRepository : Repository<TransactionData>
                 
                 UPDATE accounts
                 SET balance_minor_unit = balance_minor_unit + (@amount_minor_unit * (CASE WHEN @transaction_type = 'deposit' THEN 1 ELSE -1 END))
-                WHERE account_number = @account_number AND balance_minor_unit <= @amount_minor_unit;
+                WHERE account_number = @account_number;
                 COMMIT;
                 ";
         await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
@@ -102,7 +102,7 @@ public class TransactionRepository : Repository<TransactionData>
     public async Task<IEnumerable<TransactionData>> GetAllFromAccountAsync(long accountNumber)
     {
         string sql =
-            "SELECT * FROM transactions WHERE account_number = @account_number AND deleted_at IS NULL";
+            "SELECT * FROM transactions WHERE account_number = @account_number AND deleted_at IS NULL ORDER BY created_at DESC";
 
         await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
 
@@ -141,7 +141,8 @@ public class TransactionRepository : Repository<TransactionData>
             @"SELECT * FROM transactions
                 WHERE created_at >= @StartDate AND created_at <= @EndDate
                 AND account_number = @AccountNumber
-                AND deleted_at IS NULL";
+                AND deleted_at IS NULL
+                ORDER BY created_at DESC";
 
         await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
 
@@ -175,8 +176,19 @@ public class TransactionRepository : Repository<TransactionData>
     public async Task UpdateAsync(TransactionData entity)
     {
         string sql =
-            @"UPDATE transactions SET account_number = @p0, amount_minor_unit = @p1, created_at = @p2, deleted_at = @p3, transaction_type = @p4::transaction_type
-                WHERE id = @p5";
+            @"
+            BEGIN;
+
+            UPDATE transactions
+            SET account_number = @p0, amount_minor_unit = @p1, created_at = @p2, deleted_at = @p3, transaction_type = @p4::transaction_type
+            WHERE id = @p5;
+
+            UPDATE accounts
+            balance_minor_unit = balance_minor_unit - (@p1 * (CASE WHEN @p4 = 'deposit' THEN 1 ELSE -1 END))
+            WHERE account_number = @p0;
+
+            COMMIT;
+            ";
 
         await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
 

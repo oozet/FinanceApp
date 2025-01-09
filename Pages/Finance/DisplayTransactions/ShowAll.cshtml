@@ -13,8 +13,8 @@
 </style>
 
 @{
-    if (Model.Accounts == null || Model.Accounts.Count == 0) { <p>No accounts. Add an account.</p>}
-    if (User.Identity.IsAuthenticated)
+    if (Model.Accounts == null || Model.Accounts.Count == 0) { <p>No accounts. <a  class="nav-link px-3" href="/Finance/CreateAccount">Create an account</a>.</p>}
+    else if (User.Identity.IsAuthenticated)
     {
         <div class="container">
             <div class="row">
@@ -30,12 +30,19 @@
                 </form>
 
                 @if(Model.Items.Count > 0){
-                <ul>
+                <p>@Model.Items.Count transactions in account - Balance: @TempData["Balance"] SEK</p>
+                <table>
+                    <tr><th>Transaction Type</th><th>Amount</th><th>Account number</th><th>Creation date</th></tr>
                     @foreach (var item in Model.Items)
                     {
-                        <li>@item.AmountMinorUnit</li>
+                        <tr>
+                        <td>@item.TransactionType.ToString()</td>
+                        <td>@item.Amount SEK</td>
+                        <td>@item.AccountNumber</td>
+                        <td>@item.CreatedAt</td>
+                        </tr>
                     }
-                </ul>
+                </table>
                 }
                 else{
                     if (TempData["ErrorMessage"] != null)

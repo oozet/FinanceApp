@@ -60,6 +60,8 @@ if (TempData["ErrorMessage"] != null)
     </div>
     <div>
     <form method="post">
+        <fieldset>
+            <legend>Filter by year and week</legend>
         <input type="hidden" name="form" value="week" />
         <div>
             <label asp-for="Week">Year and week:</label>
@@ -75,6 +77,7 @@ if (TempData["ErrorMessage"] != null)
             </select>
         </div>
         <button type="submit">Submit</button>
+        </fieldset>
     </form>
     </div>
 </div>
@@ -86,17 +89,19 @@ else if(Model.Transactions.Count > 0)
 {
     <div>
         <h3>Transactions from @Model.StartDate.ToShortDateString() to @Model.EndDate.ToShortDateString()</h3>
+        <p>Total account balance: @TempData["Balance"] SEK</p>
         <table>
             <form method="post" asp-page-handler="Delete">
+            <tr><th>Transaction Type</th><th>Amount</th><th>Account number</th><th>Creation date</th><th>Delete transaction</th></tr>
             @foreach (var transaction in Model.Transactions)
             {
                 <input type="hidden" name="transactionId" value="@transaction.Id.ToString()" />
                 <tr>
+                    <td>@transaction.TransactionType.ToString()</td>
                     <td>@transaction.Amount</td>
                     <td>@transaction.AccountNumber</td>
                     <td>@transaction.CreatedAt.ToShortDateString()</td>
                     <td><button type="submit">Delete</button></td>
-                    @* <td><input type="submit" name="transactionId" value="@transaction.Id.ToString()"/>Delete</td> *@
                 </tr>
             }
             </form>

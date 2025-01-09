@@ -68,7 +68,7 @@ public static class WebApplicationBuilderExtensions
             var context = services.GetRequiredService<AppDbContext>();
 
             // Delete database if I want a clean state
-            //context.Database.EnsureDeleted();
+            // context.Database.EnsureDeleted();
 
             context.Database.EnsureCreated();
 

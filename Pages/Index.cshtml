@@ -7,8 +7,10 @@
 
 <h1>@ViewData["Title"]</h1>
 @if(TempData["Success"] != null)
+        { <div class="alert alert-success">@TempData["SuccessMessage"]</div> }
+@if(TempData["ErrorMessage"] != null)
 {
-    <div class="alert-success">@TempData["SuccessMessage"]</div>
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
 }
 <div class="container">
 @if (User?.Identity?.IsAuthenticated ?? false){
@@ -35,3 +37,6 @@ else{
     </div>
 }
 </div>
+
+
+@section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }

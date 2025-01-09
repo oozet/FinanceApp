@@ -28,10 +28,11 @@ public class IndexModel : PageModel
     {
         if (await _userController.GetUserByNameAsync("admin") != null)
         {
-            TempData["Error"] = "Database already populated.";
+            TempData["ErrorMessage"] = "Database already populated.";
+            return Page();
         }
         await _populateDb.Populate(1000);
-        TempData["Success"] = "Database populated with 1000 entries";
+        TempData["SuccessMessage"] = "Database populated with 1000 entries";
         return Page();
     }
 }
