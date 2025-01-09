@@ -158,21 +158,9 @@ public class UserRepositorySQL : IUserRepositorySQL
             throw new InvalidCastException(id + " is not a valid Guid.");
         }
 
-        string sql = "SELECT id, username FROM users WHERE id = @id";
-
-        await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
         try
         {
-            await connection.OpenAsync();
-
-            await using var command = new NpgsqlCommand(sql, connection);
-            command.Parameters.AddWithValue("@id", userId);
-
-            using var reader = await command.ExecuteReaderAsync();
-            if (await reader.ReadAsync())
-            {
-                return new AppUser { Id = reader.GetGuid(0), Username = reader.GetString(1) };
-            }
+            return await GetByIdAsync(userId);
         }
         catch (NpgsqlException ex)
         {

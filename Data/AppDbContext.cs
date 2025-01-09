@@ -6,6 +6,7 @@ namespace FinanceApp.Data;
 // Trying out primary constructor.
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
+    // Not really needed since raw sql is used for queries.
     public DbSet<AppUser> Users { get; set; } = null!;
     public DbSet<Account> Accounts { get; set; } = null!;
     public DbSet<TransactionData> TransactionData { get; set; } = null!;
@@ -54,6 +55,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         );
     }
 
+    // Using this instead of migrations to set up database.
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Set up Enums and Uuid generation.
@@ -61,11 +63,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .HasPostgresEnum("account_type", new[] { "personal", "savings", "business" })
             .HasPostgresEnum("transaction_type", new[] { "deposit", "withdrawal" })
             .HasPostgresExtension("uuid-ossp");
-
-        // modelBuilder
-        //     .HasPostgresEnum<AccountType>("account_type")
-        //     .HasPostgresEnum<TransactionType>("transaction_type")
-        //     .HasPostgresExtension("uuid-ossp");
 
         // Set up tables.
         modelBuilder.Entity<AppUser>(entity =>

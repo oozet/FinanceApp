@@ -1,0 +1,43 @@
+@page
+@using FinanceApp.Models; 
+@model ShowWithJoinModel 
+@{
+    ViewData["Title"] = "Show All Transactions";
+} 
+<style> .dropdown { 
+    appearance: none; -webkit-appearance: none; -moz-appearance: none;
+    background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg"><polyline points="20 40, 70 90, 120 40" style="fill:none;stroke:black;stroke-width:16" /></svg>') no-repeat right center;
+    background-position: calc(100% - 10px) center;
+    background-size: 10px;
+    padding-right: 20px; }
+</style>
+
+@{
+    if (User.Identity.IsAuthenticated)
+    {
+        <div class="container">
+            <div class="row">
+                
+                @if(Model.Items.Count > 0){
+                <ul>
+                    @foreach (var item in Model.Items)
+                    {
+                        <li>@item.AmountMinorUnit</li>
+                    }
+                </ul>
+                }
+                else{
+                    if (TempData["ErrorMessage"] != null)
+                    { <div class="alert alert-danger">@TempData["ErrorMessage"]</div> }
+                
+                else { <div>No transaction made by this user.</div>}
+                }
+            </div>
+        </div>
+    }
+    else { <div>User not authenticated?</div>}
+}
+
+@section Scripts { 
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} 
+}

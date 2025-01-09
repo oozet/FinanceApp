@@ -1,0 +1,12 @@
+@page
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@{
+    ViewData["Title"] = "Finance App";
+}
+
+    <div>
+        <a class="nav-link px-3" href="DisplayTransactions/ShowAll">Show all transactions for specific account</a>
+        <a class="nav-link px-3" href="DisplayTransactions/ShowToFrom">Show transactions between two dates</a>
+        <a class="nav-link px-3" href="DisplayTransactions/ShowWithJoin">Show all transactions by current user using join</a>
+    </div>

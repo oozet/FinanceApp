@@ -5,36 +5,33 @@
     ViewData["Title"] = "Finance App";
 }
 
+<h1>@ViewData["Title"]</h1>
 @if(TempData["Success"] != null)
 {
     <div class="alert-success">@TempData["SuccessMessage"]</div>
 }
-
+<div class="container">
 @if (User?.Identity?.IsAuthenticated ?? false){
     <div class="text-center">
-    <h2 class="display-4">Welcome</h2>
-    <ul>
-    @{
-        var claims = User.Claims;
-        foreach(var claim in claims){
-            <li>@claim.Type: @claim.Value</li>
-        }
-    }
-    </ul>
-    </div>
-    <div>
-        <a class="nav-link px-3" href="/Finance/CreateAccount">Create an account</a>
+    <h2 class="display-4">Welcome <b>@User.Identity.Name</b></h2>
+        <div>
+            <p>
+            <a class="nav-link px-3" href="/Finance/CreateAccount">Create a bank account for the user</a>
+            or the links on the left to add and view transactions.
+            </p>
+        </div>
     </div>
 }
 else{
     <div class="text-center">
         <h1 class="display-4">Welcome</h1>
         <div>
-            To create an account with admin/password and populate the database with 1000 transactions, click the button
+            <p>To create an account with username: 'admin' password: 'password' and populate the database with 1000 transactions, click the button</p>
             <form method="post" asp-page-handler="Populate">
-            <button type="submit" id="populateButton">Call Populate Method</button>
+            <button type="submit" id="populateButton">Populate</button>
             </form>
+            <p>Otherwise you can <a href="/UserAccount/Login">login</a> or <a href="/UserAccount/Register">register</a> a user and manually add bankaccounts and transactions.</p>
         </div>
-        <div>Otherwise you can register an account here: <a href="/Finance/CreateAccount">Create an account</a> and manually add bankaccounts and transactions.</div>
     </div>
 }
+</div>

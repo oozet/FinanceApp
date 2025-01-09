@@ -114,9 +114,3 @@ public class AddManyModel : PageModel
         return RedirectToPage();
     }
 }
-
-// public class TransactionFormModel
-// {
-//     public float Amount { get; set; }
-//     public TransactionType Type { get; set; }
-// }

@@ -52,10 +52,7 @@ public class ShowAllModel : PageModel
         await PopulateAccountsAsync();
         var list = await _transactionController.GetTransactionListAsync(AccountNumber);
         Items = list.ToList();
-        foreach (var account in Items)
-        {
-            Console.WriteLine(account.AmountMinorUnit);
-        }
+
         ViewData["Transactions"] = Items;
         TempData["ErrorMessage"] = "No transactions made in account.";
 

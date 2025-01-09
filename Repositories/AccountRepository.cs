@@ -24,13 +24,6 @@ public class AccountRepositorySQL : IAccountRepositorySQL
         _logger = logger;
     }
 
-    public int AccountNumber { get; private set; }
-
-    public Task AddAsync(Account entity)
-    {
-        throw new NotImplementedException();
-    }
-
     // Note: Not checking for valid Guid. Will it ever be invalid?
     public async Task<Account> CreateAccountAsync(AccountType accountType, Guid userId)
     {
@@ -61,16 +54,6 @@ public class AccountRepositorySQL : IAccountRepositorySQL
         }
 
         throw new Exception("Unable to create account. reader contains nothing.");
-    }
-
-    public Task DeleteAsync(Account entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<Account> GetAccountsAsync()
-    {
-        throw new NotImplementedException();
     }
 
     public async Task<List<Account>> GetAllAccountsAsync(string userId)
@@ -107,16 +90,6 @@ public class AccountRepositorySQL : IAccountRepositorySQL
         return accounts;
     }
 
-    public Task<IEnumerable<Account>> GetAllAsync()
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<Account?> GetByIdAsync(Guid id)
-    {
-        throw new InvalidDataException("Account number should not be a Guid.");
-    }
-
     public async Task<Account?> GetAsync(long accountNumber)
     {
         string sql = "SELECT * FROM accounts WHERE id = @account_number";
@@ -145,7 +118,67 @@ public class AccountRepositorySQL : IAccountRepositorySQL
         throw new NullReferenceException($"No account with number: {accountNumber}");
     }
 
+    public async Task<List<TransactionData>> GetTransactionsUsingJoinAsync(AppUser user)
+    {
+        List<TransactionData> transactions = [];
+        string sql =
+            @"SELECT * FROM transactions
+                JOIN accounts ON accounts.account_number = transactions.account_number WHERE accounts.user_id = @userId
+            ";
+
+        await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
+
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.AddWithValue("@userId", user.Id);
+
+        using var reader = await command.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
+        {
+            transactions.Add(
+                new()
+                {
+                    Id = reader.GetGuid(0),
+                    AmountMinorUnit = reader.GetInt64(1),
+                    AccountNumber = reader.GetInt64(2),
+                    TransactionType = (TransactionType)
+                        Enum.Parse(typeof(TransactionType), reader.GetString(3), true),
+                    CreatedAt = reader.GetDateTime(4),
+                }
+            );
+        }
+
+        return transactions;
+    }
+
     public Task UpdateAsync(Account entity)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IEnumerable<Account>> GetAllAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<Account?> GetByIdAsync(Guid id)
+    {
+        throw new InvalidDataException("Account number should not be a Guid.");
+    }
+
+    public Task DeleteAsync(Account entity)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<Account> GetAccountsAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task AddAsync(Account entity)
     {
         throw new NotImplementedException();
     }

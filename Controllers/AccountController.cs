@@ -134,4 +134,27 @@ public class AccountController : Controller
         }
         return null;
     }
+
+    public async Task<List<TransactionData>> GetTransactionsUsingJoinAsync(AppUser user)
+    {
+        try
+        {
+            return await _accountRepository.GetTransactionsUsingJoinAsync(user);
+        }
+        catch (NpgsqlException ex)
+        {
+            Console.WriteLine(
+                $"Database error getting transactions through join with accounts from user: {user.Username} "
+                    + ex.ToString()
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(
+                $"Unexpected error getting transactions through join with accounts from user: {user.Username} "
+                    + ex.ToString()
+            );
+        }
+        return [];
+    }
 }

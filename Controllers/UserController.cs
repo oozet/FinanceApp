@@ -11,18 +11,18 @@ namespace FinanceApp.Controllers;
 public class UserController : Controller
 {
     private readonly IUserRepositorySQL _userRepository;
-    protected IMemoryCache _memoryCache;
+    protected CacheService _cacheService;
     private IHttpContextAccessor _httpContextAccessor;
     private const string KEY_PREFIX = "User_";
 
     public UserController(
         IUserRepositorySQL userRepository,
-        IMemoryCache memoryCache,
+        CacheService cacheService,
         IHttpContextAccessor httpContextAccessor
     )
     {
         _userRepository = userRepository;
-        _memoryCache = memoryCache;
+        _cacheService = cacheService;
         _httpContextAccessor = httpContextAccessor;
     }
 
@@ -56,7 +56,7 @@ public class UserController : Controller
         {
             string cacheKey = KEY_PREFIX + userId;
 
-            if (!_memoryCache.TryGetValue(cacheKey, out AppUser? cachedUser))
+            if (!_cacheService.TryGetValue(cacheKey, out AppUser? cachedUser))
             {
                 // If not found in cache, fetch from database or UserManager
                 try
@@ -96,7 +96,7 @@ public class UserController : Controller
                 TimeSpan.FromMinutes(30)
             ); // Cache duration
 
-            _memoryCache.Set(cacheKey, entity, cacheEntryOptions);
+            _cacheService.Set(cacheKey, entity, cacheEntryOptions);
         }
         catch (Exception ex)
         {
@@ -113,7 +113,7 @@ public class UserController : Controller
             if (appUser != null)
             {
                 string cacheKey = KEY_PREFIX + appUser.Id.ToString();
-                StoreInCache<AppUser>(cacheKey, appUser);
+                StoreInCache(cacheKey, appUser);
             }
             return appUser;
         }
@@ -146,6 +146,28 @@ public class UserController : Controller
             string cacheKey = KEY_PREFIX + appUser.Id.ToString();
             StoreInCache(cacheKey, appUser);
             return appUser;
+        }
+        catch (NpgsqlException ex)
+        {
+            Console.WriteLine($"Database error while creating user: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{ex.GetType()} while creating user: {ex.Message}");
+        }
+        return null;
+    }
+
+    public async Task<AppUser?> GetUserByNameAsync(string username)
+    {
+        try
+        {
+            var userId = await _userRepository.GetIdByNameAsync(username);
+
+            if (userId != Guid.Empty)
+            {
+                return await GetAppUserAsync(userId.ToString());
+            }
         }
         catch (NpgsqlException ex)
         {

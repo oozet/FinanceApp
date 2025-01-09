@@ -14,6 +14,4 @@ public partial class AppUser
     // public string Salt { get; set; } = null!;
 
     // public virtual ICollection<Account> Accounts { get; set; } = new List<Account>();
-
-    // public virtual ICollection<Person> People { get; set; } = new List<Person>();
 }
