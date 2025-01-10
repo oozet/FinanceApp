@@ -1,14 +1,14 @@
 @page
 @model CreateAccountModel
 @{
-    ViewData["Title"] = "Account";
+    ViewData["Title"] = "Create Bank Account";
 }
 
 <div class="container">
     <div class="row">
         <form id="registerForm" method="post" class="col-md-4 mx-auto">
             <div class="text-center mt-5" style="font-size: 20px;">
-                Simple App Test
+                <h2>@ViewData["Title"]</h2>
             </div>
             <hr />
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>

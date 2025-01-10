@@ -1,11 +1,12 @@
 @page
 @model ShowToFromModel
 @{
-    ViewData["Title"] = "Transactions";
+    ViewData["Title"] = "Show Filtered Transactions";
     var currentDate = DateTime.Now.ToString("yyyy-MM-dd");
 }
 
-<h2>List transactions</h2>
+
+<h2>@ViewData["Title"]</h2>
 <p>If you, like me are using firefox, month and week picker won't work. Input as text with the correct format.</p>
 @if(Model.Accounts != null){
 if(TempData["SuccessMessage"] != null)

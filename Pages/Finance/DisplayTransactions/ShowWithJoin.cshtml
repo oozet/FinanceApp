@@ -2,7 +2,7 @@
 @using FinanceApp.Models; 
 @model ShowWithJoinModel 
 @{
-    ViewData["Title"] = "Show All Transactions";
+    ViewData["Title"] = "Show Transactions";
 } 
 <style> .dropdown { 
     appearance: none; -webkit-appearance: none; -moz-appearance: none;
@@ -12,6 +12,10 @@
     padding-right: 20px; }
 </style>
 
+
+
+<h2>@ViewData["Title"]</h2>
+<p>Shows transactions across all bank accounts of the current user.</p>
 @{
     if (User.Identity.IsAuthenticated)
     {
