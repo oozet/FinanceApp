@@ -2,6 +2,7 @@ using FinanceApp.Data;
 using FinanceApp.Models;
 using FinanceApp.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Npgsql;
 
 namespace FinanceApp.Repositories;
@@ -27,8 +28,6 @@ public class AccountRepositorySQL : IAccountRepositorySQL
     // Note: Not checking for valid Guid. Will it ever be invalid?
     public async Task<Account> CreateAccountAsync(AccountType accountType, Guid userId)
     {
-        _logger.LogDebug("Where can I find logs?", accountType, userId);
-
         string sql =
             @"INSERT INTO accounts (user_id, account_type) VALUES (@user_id, @type::account_type) RETURNING *";
 
