@@ -29,7 +29,7 @@ public class TransactionController : Controller
 
     public async Task<TransactionData?> AddTransactionAsync(
         long amountMinorUnit,
-        long accountNumber,
+        int accountNumber,
         TransactionType type
     )
     {
@@ -52,14 +52,10 @@ public class TransactionController : Controller
             try
             {
                 int rowsAffected = await _transactionRepository.AddAsync(transactionEntry);
-                Console.WriteLine("Rows affected: " + rowsAffected);
                 if (rowsAffected == 0)
                 {
                     throw new Exception("Unable to add transaction");
                 }
-                // string cacheKey = KEY_PREFIX + account.AccountNumber.ToString();
-                // _cacheService.Set(cacheKey, account);
-                // return account;
                 return transactionEntry;
             }
             catch (NpgsqlException ex)
@@ -76,7 +72,7 @@ public class TransactionController : Controller
 
     public async Task<Result> AddToQueueAsync(
         long amountMinorUnit,
-        long accountNumber,
+        int accountNumber,
         TransactionType type
     )
     {
@@ -126,13 +122,6 @@ public class TransactionController : Controller
                 transactions.Add(transaction);
                 _cacheService.Remove(key);
             }
-
-            foreach (var transaction in transactions)
-            {
-                Console.WriteLine(
-                    $"{transaction.Id}, {transaction.AccountNumber}, {transaction.AmountMinorUnit / 100}, {transaction.TransactionType}"
-                );
-            }
         }
         catch (Exception ex)
         {
@@ -152,7 +141,6 @@ public class TransactionController : Controller
             int rowsAffected = await _transactionRepository.AddTransactionEntriesAsync(
                 transactions
             );
-            Console.WriteLine("Rows affected: " + rowsAffected);
             if (rowsAffected == 0)
             {
                 throw new Exception("Unable to add transaction");
@@ -215,27 +203,53 @@ public class TransactionController : Controller
         return [];
     }
 
+    public async Task<List<TransactionData>> GetTransactionListByYearAsync(
+        int year,
+        long accountNumber
+    )
+    {
+        try
+        {
+            return await _transactionRepository.GetTransactionsForYearAsync(year, accountNumber);
+        }
+        catch (NpgsqlException ex)
+        {
+            Console.WriteLine("Database error in GetTransactionListByYearAsync: " + ex.Message);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Other error in GetTransactionListByYearAsync: " + ex.Message);
+        }
+        return [];
+    }
+
     public async Task DeleteTransactionAsync(TransactionData entity)
     {
         try
         {
+            if (entity.DeletedAt != null)
+            {
+                await _transactionRepository.DeleteAsync(entity);
+                return;
+            }
+
             entity.DeletedAt = DateTime.Now;
-            Console.WriteLine(entity);
+
             await _transactionRepository.UpdateAsync(entity);
         }
         catch (NpgsqlException ex)
         {
-            Console.WriteLine("Database error in DeleteTransaction: " + ex.Message);
+            throw new Exception("Database error in DeleteTransaction: " + ex.Message);
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Other error in DeleteTransaction: " + ex.Message);
+            throw new Exception("Other error in DeleteTransaction: " + ex.Message);
         }
 
         return;
     }
 
-    public async Task<TransactionData> GetTransactionByIdAsync(Guid id)
+    public async Task<TransactionData?> GetTransactionByIdAsync(Guid id)
     {
         try
         {

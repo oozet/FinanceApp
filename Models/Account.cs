@@ -5,7 +5,7 @@ namespace FinanceApp.Models;
 
 public partial class Account
 {
-    public long AccountNumber { get; set; }
+    public int AccountNumber { get; set; }
 
     public Guid? UserId { get; set; }
 
@@ -17,8 +17,13 @@ public partial class Account
 
     public DateTime? DeletedAt { get; set; }
 
-    // public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+    public float Balance
+    {
+        get { return BalanceMinorUnit / 100; }
+    }
 
+    // Not using ORM and lazy loading
+    // public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
     // public virtual User? User { get; set; }
 }
 

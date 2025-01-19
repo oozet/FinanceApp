@@ -33,7 +33,7 @@ public class ShowAllModel : PageModel
     [BindProperty]
     public long AccountNumber { get; set; }
     public List<TransactionData> Items { get; set; } = [];
-    public List<Account> Accounts { get; set; }
+    public List<Account> Accounts { get; set; } = [];
 
     public async Task<IActionResult> OnGetAsync(string? returnUrl = null)
     {
@@ -66,6 +66,29 @@ public class ShowAllModel : PageModel
         }
 
         return Page();
+    }
+
+    public async Task<IActionResult> OnPostDeleteAsync(Guid transactionId)
+    {
+        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+        if (userId != null)
+        {
+            Accounts = await _accountController.GetUserAccountsAsync(userId);
+        }
+
+        var entity = await _transactionController.GetTransactionByIdAsync(transactionId);
+
+        if (entity == null)
+        {
+            ErrorMessage = "Error: delete malfunction.";
+            return RedirectToPage();
+        }
+
+        await _transactionController.DeleteTransactionAsync(entity);
+
+        TempData["SuccessMessage"] = $"Transaction with id {entity.Id} deleted successfully.";
+        return RedirectToPage();
     }
 
     private async Task PopulateAccountsAsync()

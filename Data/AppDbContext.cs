@@ -1,5 +1,8 @@
-﻿using FinanceApp.Models;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using FinanceApp.Models;
 using Microsoft.EntityFrameworkCore;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace FinanceApp.Data;
 
@@ -62,7 +65,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder
             .HasPostgresEnum("account_type", new[] { "personal", "savings", "business" })
             .HasPostgresEnum("transaction_type", new[] { "deposit", "withdrawal" })
-            .HasPostgresExtension("uuid-ossp");
+            .HasPostgresExtension("uuid-ossp")
+            .UseIdentityColumns();
 
         // Set up tables.
         modelBuilder.Entity<AppUser>(entity =>
@@ -98,8 +102,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .Property(e => e.AccountNumber)
                 .HasColumnName("account_number")
                 .HasMaxLength(10)
-                .ValueGeneratedNever()
-                .HasColumnType("bigint");
+                .ValueGeneratedNever();
 
             entity
                 .Property(e => e.BalanceMinorUnit)
@@ -128,6 +131,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .HasOne<AppUser>()
                 .WithMany()
                 .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("accounts_user_id_fkey");
         });
 
@@ -162,8 +166,29 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .HasOne<Account>()
                 .WithMany()
                 .HasForeignKey(d => d.AccountNumber)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("transactions_account_number_fkey");
+        });
+
+        modelBuilder.Entity<Person>(entity =>
+        {
+            entity.HasKey(e => e.PersonId).HasName("persons_pkey");
+
+            entity.ToTable("persons");
+
+            entity.Property(e => e.PersonId).HasColumnName("person_id");
+
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.FirstName).HasColumnName("first_name");
+            entity.Property(e => e.LastName).HasColumnName("last_name");
+            entity.Property(e => e.Email).HasColumnName("email");
+
+            entity
+                .HasOne<AppUser>()
+                .WithOne()
+                .HasForeignKey<Person>(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("users_user_id_fkey");
         });
     }
 }

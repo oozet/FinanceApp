@@ -14,7 +14,7 @@
 <h2>@ViewData["Title"]</h2>
 <p>Pool transactions in cache. Adds to database after five transactions have been pooled and removes from cache.</p>
 @{if (Model.Accounts == null || Model.Accounts.Count == 0) { <p>No accounts. Add an account to be able to add a transaction.</p>}
-else if (User.Identity.IsAuthenticated) {
+else if (User?.Identity?.IsAuthenticated ?? false) {
     if (TempData["SuccessMessage"] != null)
         { <div class="alert alert-success">@TempData["SuccessMessage"]</div> }
     if (TempData["ErrorMessage"] != null)

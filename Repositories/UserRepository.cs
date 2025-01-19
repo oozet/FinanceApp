@@ -16,18 +16,12 @@ public interface IUserRepositorySQL : IRepository<AppUser>
 
 public class UserRepositorySQL : IUserRepositorySQL
 {
-    private readonly PasswordService _passwordService;
     private readonly AppDbContext _context;
     private ILogger<UserRepositorySQL> _logger;
 
-    public UserRepositorySQL(
-        AppDbContext context,
-        PasswordService passwordService,
-        ILogger<UserRepositorySQL> logger
-    )
+    public UserRepositorySQL(AppDbContext context, ILogger<UserRepositorySQL> logger)
     {
         _context = context;
-        _passwordService = passwordService;
         _logger = logger;
     }
 
@@ -67,7 +61,7 @@ public class UserRepositorySQL : IUserRepositorySQL
         {
             string password_hash = reader.GetString(2);
             string salt = reader.GetString(3);
-            if (!_passwordService.VerifyPassword(password, password_hash, salt))
+            if (!PasswordService.VerifyPassword(password, password_hash, salt))
             {
                 return null;
             }
@@ -87,7 +81,7 @@ public class UserRepositorySQL : IUserRepositorySQL
 
         var newUser = new AppUser { Id = Guid.NewGuid(), Username = username };
 
-        (string password_hash, string salt) = _passwordService.HashPassword(password);
+        (string password_hash, string salt) = PasswordService.HashPassword(password);
         string sql =
             @"INSERT INTO users (id, username, password_hash, salt) VALUES (@id, @username, @password_hash, @salt)";
 
@@ -114,9 +108,32 @@ public class UserRepositorySQL : IUserRepositorySQL
         throw new NotImplementedException();
     }
 
-    public Task DeleteAsync(AppUser entity)
+    public async Task DeleteAsync(AppUser entity)
     {
-        throw new NotImplementedException();
+        try
+        {
+            string sql = "DELETE FROM users WHERE id = @userId";
+
+            await using var connection = new NpgsqlConnection(
+                _context.Database.GetConnectionString()
+            );
+            await connection.OpenAsync();
+
+            await using var command = new NpgsqlCommand(sql, connection);
+            command.Parameters.AddWithValue("@userId", entity.Id);
+
+            await command.ExecuteNonQueryAsync();
+        }
+        catch (NpgsqlException ex)
+        {
+            // Log the exception
+            _logger.LogError(ex, "Error deleting user in database");
+        }
+        catch (Exception ex)
+        {
+            // Catch any unexpected exceptions
+            _logger.LogError(ex, "Unexpected error during user deletion");
+        }
     }
 
     public async Task<AppUser?> GetByIdAsync(Guid id)

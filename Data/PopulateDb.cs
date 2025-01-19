@@ -10,8 +10,8 @@ public class PopulateDb
     private readonly AccountController _accountController;
     private readonly TransactionRepository _transactionRepository;
 
-    public PopulateDb() // Parameterless constructor for model binding (won't be used)
-    { }
+    // public PopulateDb() // Parameterless constructor for model binding (won't be used)
+    // { }
 
     public PopulateDb(
         UserController userController,
@@ -33,12 +33,13 @@ public class PopulateDb
             user = await _userController.CreateUser("admin", "password");
         }
 
-        var account = await _accountController.CreateDebugAccountAsync(user, AccountType.Business);
-        long accountNumber = account.AccountNumber;
+        var account = await _accountController.CreateDebugAccountAsync(user!, AccountType.Business);
+        int accountNumber = account!.AccountNumber;
 
         var transactions = new List<TransactionData>();
         Random random = new Random();
         long totalAmount = 0;
+        TransactionType transactionType;
 
         DateTime startDate = new DateTime(2023, 1, 1);
         TimeSpan timeSpan = DateTime.Now - startDate;
@@ -49,35 +50,35 @@ public class PopulateDb
             TimeSpan randomSpan = new TimeSpan(0, random.Next(0, (int)timeSpan.TotalMinutes), 0);
             DateTime randomDate = startDate + randomSpan;
 
-            random.Next(0, 1);
-            TransactionType transactionType = (TransactionType)random.Next(0, 2);
-
             if ((totalAmount - amountMinorUnit) < 0)
             {
                 transactionType = TransactionType.Deposit;
+            }
+            else
+            {
+                transactionType = (TransactionType)random.Next(0, 2);
             }
 
             TransactionData entry =
                 new()
                 {
                     Id = Guid.NewGuid(),
-                    AmountMinorUnit = (long)random.Next(1000, 10000000),
+                    AmountMinorUnit = amountMinorUnit,
                     AccountNumber = accountNumber,
                     TransactionType = transactionType,
                     CreatedAt = randomDate,
                 };
 
-            // Delete every 95th transaction.
-            if (i % 95 == 1)
+            if (transactionType == TransactionType.Withdrawal)
+                totalAmount -= amountMinorUnit;
+            else
             {
-                TimeSpan spanFromDate = DateTime.Now - entry.CreatedAt;
-                randomSpan = new TimeSpan(0, random.Next(0, (int)spanFromDate.TotalMinutes), 0);
-                randomDate = entry.CreatedAt + randomSpan;
-                entry.DeletedAt = randomDate;
+                totalAmount += amountMinorUnit;
             }
 
-            totalAmount += entry.AmountMinorUnit;
-            await _transactionRepository.AddAsync(entry);
+            transactions.Add(entry);
         }
+
+        await _transactionRepository.AddTransactionEntriesAsync(transactions);
     }
 }

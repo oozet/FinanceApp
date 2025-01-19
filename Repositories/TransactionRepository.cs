@@ -38,15 +38,6 @@ public class TransactionRepository : Repository<TransactionData>
         );
         command.Parameters.AddWithValue("@created_at", entity.CreatedAt);
 
-        // To add or remove from account balance.
-        long balanceAmount = entity.AmountMinorUnit;
-
-        if (entity.TransactionType == TransactionType.Withdrawal)
-        {
-            balanceAmount = -balanceAmount;
-        }
-        command.Parameters.AddWithValue("@amount_minor_unit_transactiontype", balanceAmount);
-
         return await command.ExecuteNonQueryAsync();
     }
 
@@ -102,7 +93,7 @@ public class TransactionRepository : Repository<TransactionData>
     public async Task<IEnumerable<TransactionData>> GetAllFromAccountAsync(long accountNumber)
     {
         string sql =
-            "SELECT * FROM transactions WHERE account_number = @account_number AND deleted_at IS NULL ORDER BY created_at DESC";
+            "SELECT * FROM transactions WHERE account_number = @account_number ORDER BY created_at DESC";
 
         await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
 
@@ -121,10 +112,11 @@ public class TransactionRepository : Repository<TransactionData>
                 {
                     Id = reader.GetGuid(0),
                     AmountMinorUnit = reader.GetInt64(1),
-                    AccountNumber = reader.GetInt64(2),
+                    AccountNumber = reader.GetInt32(2),
                     TransactionType = (TransactionType)
                         Enum.Parse(typeof(TransactionType), reader.GetString(3), true),
                     CreatedAt = reader.GetDateTime(4),
+                    DeletedAt = reader.IsDBNull(5) ? null : reader.GetDateTime(5),
                 }
             );
         }
@@ -163,7 +155,7 @@ public class TransactionRepository : Repository<TransactionData>
                 {
                     Id = reader.GetGuid(0),
                     AmountMinorUnit = reader.GetInt64(1),
-                    AccountNumber = reader.GetInt64(2),
+                    AccountNumber = reader.GetInt32(2),
                     TransactionType = (TransactionType)
                         Enum.Parse(typeof(TransactionType), reader.GetString(3), true),
                     CreatedAt = reader.GetDateTime(4),
@@ -173,7 +165,50 @@ public class TransactionRepository : Repository<TransactionData>
         return transactions;
     }
 
-    public async Task UpdateAsync(TransactionData entity)
+    public async Task<List<TransactionData>> GetTransactionsForYearAsync(
+        int year,
+        long accountNumber
+    )
+    {
+        string sql =
+            @"SELECT * FROM transactions
+                WHERE EXTRACT(YEAR FROM created_at) = @year
+                AND account_number = @AccountNumber
+                AND deleted_at IS NULL
+                ORDER BY created_at DESC";
+
+        await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
+
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.AddWithValue("@year", year);
+        command.Parameters.AddWithValue("@AccountNumber", accountNumber);
+
+        using var reader = await command.ExecuteReaderAsync();
+
+        var transactions = new List<TransactionData>();
+        while (await reader.ReadAsync())
+        {
+            transactions.Add(
+                new()
+                {
+                    Id = reader.GetGuid(0),
+                    AmountMinorUnit = reader.GetInt64(1),
+                    AccountNumber = reader.GetInt32(2),
+                    TransactionType = (TransactionType)
+                        Enum.Parse(typeof(TransactionType), reader.GetString(3), true),
+                    CreatedAt = reader.GetDateTime(4),
+                }
+            );
+        }
+        return transactions;
+    }
+
+    // This is only used for 'deletion', by setting the deleted_at to not null.
+    // That is why we can remove amount_minor_unit from account balance_minor_unit.
+    // Still won't be able to delete a transaction that sets balance to < 0.
+    new public async Task UpdateAsync(TransactionData entity)
     {
         string sql =
             @"
@@ -184,7 +219,7 @@ public class TransactionRepository : Repository<TransactionData>
             WHERE id = @p5;
 
             UPDATE accounts
-            balance_minor_unit = balance_minor_unit - (@p1 * (CASE WHEN @p4 = 'deposit' THEN 1 ELSE -1 END))
+            SET balance_minor_unit = balance_minor_unit - (@p1 * (CASE WHEN @p4 = 'deposit' THEN 1 ELSE -1 END))
             WHERE account_number = @p0;
 
             COMMIT;
@@ -198,7 +233,7 @@ public class TransactionRepository : Repository<TransactionData>
         command.Parameters.AddWithValue("@p0", entity.AccountNumber);
         command.Parameters.AddWithValue("@p1", entity.AmountMinorUnit);
         command.Parameters.AddWithValue("@p2", entity.CreatedAt);
-        command.Parameters.AddWithValue("@p3", entity.DeletedAt);
+        command.Parameters.AddWithValue("@p3", entity.DeletedAt!);
         command.Parameters.AddWithValue("@p4", entity.TransactionType.ToString().ToLower());
         command.Parameters.AddWithValue("@p5", entity.Id);
 
@@ -206,6 +241,42 @@ public class TransactionRepository : Repository<TransactionData>
         if (result == 0)
         {
             throw new Exception("Unable to update entry.");
+        }
+        return;
+    }
+
+    public new async Task DeleteAsync(TransactionData entity)
+    {
+        string sql =
+            @"
+            BEGIN;
+
+            DELETE FROM transactions WHERE id = @id;
+
+            UPDATE accounts
+            SET balance_minor_unit = balance_minor_unit - (@amount * (CASE WHEN @transactionType = 'deposit' THEN 1 ELSE -1 END))
+            WHERE account_number = @accountNumber;
+
+            COMMIT;
+            ";
+
+        await using var connection = new NpgsqlConnection(_context.Database.GetConnectionString());
+
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.AddWithValue("@id", entity.Id);
+        command.Parameters.AddWithValue("@accountNumber", entity.AccountNumber);
+        command.Parameters.AddWithValue("@amount", entity.AmountMinorUnit);
+        command.Parameters.AddWithValue(
+            "@transactionType",
+            entity.TransactionType.ToString().ToLower()
+        );
+
+        int result = await command.ExecuteNonQueryAsync();
+        if (result == 0)
+        {
+            throw new Exception("Unable to delete entry.");
         }
         return;
     }

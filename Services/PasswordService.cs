@@ -6,7 +6,7 @@ namespace FinanceApp.Services;
 
 public class PasswordService
 {
-    public (string hash, string salt) HashPassword(string password)
+    public static (string hash, string salt) HashPassword(string password)
     {
         // Generate a random salt
         var saltBytes = new byte[16];
@@ -26,7 +26,7 @@ public class PasswordService
         return (hash, salt);
     }
 
-    public bool VerifyPassword(string enteredPassword, string storedHash, string storedSalt)
+    public static bool VerifyPassword(string enteredPassword, string storedHash, string storedSalt)
     {
         var sha256 = SHA256.Create();
         var saltedPassword = enteredPassword + storedSalt;

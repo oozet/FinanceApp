@@ -17,18 +17,20 @@
 <h2>@ViewData["Title"]</h2>
 <p>Shows transactions across all bank accounts of the current user.</p>
 @{
-    if (User.Identity.IsAuthenticated)
+    if (User?.Identity?.IsAuthenticated ?? false)
     {
         <div class="container">
             <div class="row">
                 
                 @if(Model.Items.Count > 0){
-                <ul>
+                <table>
                     @foreach (var item in Model.Items)
                     {
-                        <li>@item.AmountMinorUnit</li>
+                        <tr>
+                        <td>@item.AmountMinorUnit</td>
+                        </tr>
                     }
-                </ul>
+                </table>
                 }
                 else{
                     if (TempData["ErrorMessage"] != null)

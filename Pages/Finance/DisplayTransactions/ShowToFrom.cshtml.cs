@@ -23,22 +23,27 @@ public class ShowToFromModel : PageModel
     public DateTime StartDate { get; set; }
 
     [BindProperty]
-    public string MonthYear { get; set; }
+    public string MonthYear { get; set; } = string.Empty;
 
     [BindProperty]
-    public string Week { get; set; }
+    public string Week { get; set; } = string.Empty;
+
+    [BindProperty]
+    public string Year { get; set; } = string.Empty;
 
     [BindProperty]
     public DateTime EndDate { get; set; }
 
     [BindProperty]
-    public long AccountNumber { get; set; }
+    public int AccountNumber { get; set; }
 
     [BindProperty]
-    public string TransactionId { get; set; }
+    public string TransactionId { get; set; } = string.Empty;
 
-    public List<TransactionData> Transactions { get; set; }
-    public List<Account> Accounts { get; set; }
+    public List<TransactionData> Transactions { get; set; } = [];
+    public List<Account> Accounts { get; set; } = [];
+    public float? Withdrawn { get; set; }
+    public float? Deposited { get; set; }
 
     [TempData]
     public string ErrorMessage { get; set; } = string.Empty;
@@ -60,7 +65,6 @@ public class ShowToFromModel : PageModel
         {
             case "between":
                 Transactions = await GetBetweenDatesAsync();
-                Console.WriteLine("Got between: " + Transactions.Count);
                 break;
 
             case "month":
@@ -68,15 +72,31 @@ public class ShowToFromModel : PageModel
                 break;
 
             case "week":
-                Console.WriteLine("week: " + AccountNumber);
                 Transactions = await GetWeekAsync();
-                Console.WriteLine("Got between: " + Transactions.Count);
+                break;
+
+            case "year":
+                Transactions = await GetYearAsync();
                 break;
 
             default:
                 Transactions = [];
                 ErrorMessage = "Invalid form.";
                 break;
+        }
+
+        Deposited = 0;
+        Withdrawn = 0;
+        foreach (var entry in Transactions)
+        {
+            if (entry.TransactionType == TransactionType.Deposit)
+            {
+                Deposited += entry.Amount;
+            }
+            else
+            {
+                Withdrawn += entry.Amount;
+            }
         }
 
         var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
@@ -93,9 +113,8 @@ public class ShowToFromModel : PageModel
         return Page();
     }
 
-    public async Task<IActionResult> OnPostDeleteAsync()
+    public async Task<IActionResult> OnPostDeleteAsync(Guid transactionId)
     {
-        Console.WriteLine("OnPostDeleteAsync reached.");
         var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
         if (userId != null)
@@ -103,13 +122,7 @@ public class ShowToFromModel : PageModel
             Accounts = await _accountController.GetUserAccountsAsync(userId);
         }
 
-        if (!Guid.TryParse(TransactionId, out Guid id))
-        {
-            ErrorMessage = "id failed to parse to Guid.";
-            return RedirectToPage();
-        }
-
-        var entity = await _transactionController.GetTransactionByIdAsync(id);
+        var entity = await _transactionController.GetTransactionByIdAsync(transactionId);
 
         if (entity == null)
         {
@@ -117,7 +130,15 @@ public class ShowToFromModel : PageModel
             return RedirectToPage();
         }
 
-        await _transactionController.DeleteTransactionAsync(entity);
+        try
+        {
+            await _transactionController.DeleteTransactionAsync(entity);
+        }
+        catch
+        {
+            TempData["ErrorMessage"] = "Unable to delete transaction. Balance can not be negative.";
+            return RedirectToPage();
+        }
 
         TempData["SuccessMessage"] = $"Transaction with id {entity.Id} deleted successfully.";
         return RedirectToPage();
@@ -126,14 +147,11 @@ public class ShowToFromModel : PageModel
     public async Task<List<TransactionData>> GetBetweenDatesAsync()
     {
         EndDate = EndDate.AddHours(23).AddMinutes(59).AddSeconds(59).AddMilliseconds(999);
-        Console.WriteLine($"{StartDate}, {EndDate}, {AccountNumber}");
-        var trans = await _transactionController.GetTransactionListBetweenDatesAsync(
+        return await _transactionController.GetTransactionListBetweenDatesAsync(
             StartDate,
             EndDate,
             AccountNumber
         );
-        Console.WriteLine("Count: " + trans.Count);
-        return trans;
     }
 
     public async Task<List<TransactionData>> GetMonthAsync()
@@ -148,9 +166,6 @@ public class ShowToFromModel : PageModel
             )
         )
         {
-            Console.WriteLine(
-                $"Month year: {parsedMonthYear}, +1 month {parsedMonthYear.AddMonths(1)}, {AccountNumber}"
-            );
             StartDate = parsedMonthYear;
             EndDate = parsedMonthYear
                 .AddMonths(1)
@@ -194,5 +209,18 @@ public class ShowToFromModel : PageModel
             EndDate,
             AccountNumber
         );
+    }
+
+    public async Task<List<TransactionData>> GetYearAsync()
+    {
+        if (int.TryParse(Year, out int parsedYear))
+        {
+            return await _transactionController.GetTransactionListByYearAsync(
+                parsedYear,
+                AccountNumber
+            );
+        }
+        ErrorMessage = "Invalid Year format.";
+        return [];
     }
 }

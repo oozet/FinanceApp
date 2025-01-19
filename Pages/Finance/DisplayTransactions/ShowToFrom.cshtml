@@ -7,7 +7,7 @@
 
 
 <h2>@ViewData["Title"]</h2>
-<p>If you, like me are using firefox, month and week picker won't work. Input as text with the correct format.</p>
+<p>If you are using firefox. Month and week picker won't work. Input as text with the correct format.</p>
 @if(Model.Accounts != null){
 if(TempData["SuccessMessage"] != null)
     { <div class="alert alert-success">@TempData["SuccessMessage"]</div> }
@@ -16,6 +16,8 @@ if (TempData["ErrorMessage"] != null)
 
 <div class="container">
     <form method="post">
+        <fieldset>
+            <legend>Filter between two dates</legend>
         <input type="hidden" name="form" value="between" />
         <div>
             <label asp-for="StartDate">Start Date:</label>
@@ -37,9 +39,12 @@ if (TempData["ErrorMessage"] != null)
         </select>
     </div>
         <button type="submit">Submit</button>
+        </fieldset>
     </form>
     <div>
     <form method="post">
+        <fieldset>
+            <legend>Filter by year and month</legend>
         <input type="hidden" name="form" value="month" />
         <div>
             <label asp-for="MonthYear">Year and week:</label>
@@ -57,6 +62,7 @@ if (TempData["ErrorMessage"] != null)
         </select>
         </div>
         <button type="submit">Submit</button>
+        </fieldset>
     </form>
     </div>
     <div>
@@ -81,6 +87,28 @@ if (TempData["ErrorMessage"] != null)
         </fieldset>
     </form>
     </div>
+    <div>
+    <form method="post">
+        <fieldset>
+            <legend>Filter by year</legend>
+        <input type="hidden" name="form" value="year" />
+        <div>
+            <label asp-for="Year">Year:</label>
+            <input asp-for="Year" type="number" min="1900" max="2099" step="1" value="2025">
+        </div>
+        <div>
+            <label asp-for="AccountNumber">Account Number:</label>
+            <select asp-for="AccountNumber" id="listSelector">
+                @foreach (var account in Model.Accounts)
+                {
+                    <option value="@account.AccountNumber">@account.AccountNumber</option>
+                }
+            </select>
+        </div>
+        <button type="submit">Submit</button>
+        </fieldset>
+    </form>
+    </div>
 </div>
 }
 @if(Model.Transactions == null){
@@ -91,21 +119,29 @@ else if(Model.Transactions.Count > 0)
     <div>
         <h3>Transactions from @Model.StartDate.ToShortDateString() to @Model.EndDate.ToShortDateString()</h3>
         <p>Total account balance: @TempData["Balance"] SEK</p>
+        @if(Model.Withdrawn != null){
+            <p>Total amount withdrawn this period is: @Model.Withdrawn SEK</p>
+        }
+        @if(Model.Deposited != null)
+        {
+            <p>Total amount deposited this period is: @Model.Deposited SEK</p>
+        }
         <table>
-            <form method="post" asp-page-handler="Delete">
             <tr><th>Transaction Type</th><th>Amount</th><th>Account number</th><th>Creation date</th><th>Delete transaction</th></tr>
             @foreach (var transaction in Model.Transactions)
             {
-                <input type="hidden" name="transactionId" value="@transaction.Id.ToString()" />
+                <form method="post" asp-page-handler="Delete" id="deleteForm_@transaction.Id"> 
+                <input type="hidden" name="TransactionId" value="@transaction.Id.ToString()" />
                 <tr>
                     <td>@transaction.TransactionType.ToString()</td>
                     <td>@transaction.Amount</td>
                     <td>@transaction.AccountNumber</td>
                     <td>@transaction.CreatedAt.ToShortDateString()</td>
-                    <td><button type="submit">Delete</button></td>
+                    <td><button type="submit" form="deleteForm_@transaction.Id">Delete</button></td>
                 </tr>
-            }
+                
             </form>
+            }
         </table>
     </div>
 }

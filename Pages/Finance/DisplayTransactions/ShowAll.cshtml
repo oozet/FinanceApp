@@ -16,11 +16,11 @@
 <h2>@ViewData["Title"]</h2>
 @{
     if (Model.Accounts == null || Model.Accounts.Count == 0) { <p>No accounts. <a  class="nav-link px-3" href="/Finance/CreateAccount">Create an account</a>.</p>}
-    else if (User.Identity.IsAuthenticated)
+    else if (User?.Identity?.IsAuthenticated ?? false)
     {
         <div class="container">
             <div class="row">
-                <p>Select account to show transactions</p>
+                <p>Select account to show transactions, Here you can permanently delete transactions.</p>
                 <form method="post">
                 <select asp-for="AccountNumber" id="listSelector">
                     @foreach (var account in Model.Accounts)
@@ -34,14 +34,23 @@
                 @if(Model.Items.Count > 0){
                 <p>@Model.Items.Count transactions in account - Balance: @TempData["Balance"] SEK</p>
                 <table>
-                    <tr><th>Transaction Type</th><th>Amount</th><th>Account number</th><th>Creation date</th></tr>
+                    <tr><th>Transaction Type</th><th>Amount</th><th>Account number</th><th>Creation date</th><th>Deleted At</th><th>Delete permanently</th></tr>
                     @foreach (var item in Model.Items)
                     {
+                        <input type="hidden" name="transactionId" value="@item.Id.ToString()" />
+                        
                         <tr>
                         <td>@item.TransactionType.ToString()</td>
                         <td>@item.Amount SEK</td>
                         <td>@item.AccountNumber</td>
                         <td>@item.CreatedAt</td>
+                        @if(item.DeletedAt != null){
+                            <form method="post" asp-page-handler="Delete" id="deleteForm_@item.Id"> 
+                            <input type="hidden" name="TransactionId" value="@item.Id.ToString()" />
+                                <td>@item.DeletedAt</td>
+                                <td><button type="submit" form="deleteForm_@item.Id">Delete</button></td>
+                            </form>
+                            }
                         </tr>
                     }
                 </table>

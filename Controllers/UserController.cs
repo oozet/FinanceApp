@@ -179,4 +179,23 @@ public class UserController : Controller
         }
         return null;
     }
+
+    public async Task DeleteCurrentUser()
+    {
+        try
+        {
+            AppUser? user =
+                await GetCurrentUserAsync()
+                ?? throw new Exception("No user is logged in. Cannot delete user");
+            await _userRepository.DeleteAsync(user);
+        }
+        catch (NpgsqlException ex)
+        {
+            Console.WriteLine($"Database error while deleting user: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{ex.GetType()} while deleting user: {ex.Message}");
+        }
+    }
 }

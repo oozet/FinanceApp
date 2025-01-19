@@ -10,7 +10,7 @@ public partial class TransactionData
 
     public long AmountMinorUnit { get; set; }
 
-    public long AccountNumber { get; set; }
+    public int AccountNumber { get; set; }
 
     public TransactionType TransactionType { get; set; }
 

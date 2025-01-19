@@ -43,7 +43,7 @@ public class AccountRepositorySQL : IAccountRepositorySQL
         {
             return new Account
             {
-                AccountNumber = reader.GetInt64(0),
+                AccountNumber = reader.GetInt32(0),
                 UserId = reader.GetGuid(1),
                 BalanceMinorUnit = reader.GetInt64(2),
                 AccountType = (AccountType)
@@ -77,7 +77,7 @@ public class AccountRepositorySQL : IAccountRepositorySQL
             accounts.Add(
                 new Account
                 {
-                    AccountNumber = reader.GetInt64(0),
+                    AccountNumber = reader.GetInt32(0),
                     UserId = reader.GetGuid(1),
                     BalanceMinorUnit = reader.GetInt64(2),
                     AccountType = (AccountType)
@@ -105,7 +105,7 @@ public class AccountRepositorySQL : IAccountRepositorySQL
         {
             return new Account
             {
-                AccountNumber = reader.GetInt64(0),
+                AccountNumber = reader.GetInt32(0),
                 UserId = reader.GetGuid(1),
                 BalanceMinorUnit = reader.GetInt64(2),
                 AccountType = (AccountType)
@@ -141,7 +141,7 @@ public class AccountRepositorySQL : IAccountRepositorySQL
                 {
                     Id = reader.GetGuid(0),
                     AmountMinorUnit = reader.GetInt64(1),
-                    AccountNumber = reader.GetInt64(2),
+                    AccountNumber = reader.GetInt32(2),
                     TransactionType = (TransactionType)
                         Enum.Parse(typeof(TransactionType), reader.GetString(3), true),
                     CreatedAt = reader.GetDateTime(4),

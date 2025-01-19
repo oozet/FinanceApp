@@ -35,10 +35,8 @@ public class AccountController : Controller
 
             if (user == null)
             {
-                Console.WriteLine("user is null.");
-                throw new Exception("No user ");
+                throw new Exception("User is null");
             }
-            Console.WriteLine("Trying to create account.");
             Account account = await _accountRepository.CreateAccountAsync(type, user.Id);
             string cacheKey = KEY_PREFIX + account.AccountNumber.ToString();
             _cacheService.Set(cacheKey, account);

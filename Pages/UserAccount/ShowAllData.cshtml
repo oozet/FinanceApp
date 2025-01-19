@@ -1,11 +1,12 @@
 ﻿@page
 @using FinanceApp
-@model IndexModel
+@model ShowAllDataModel
 @{
-    ViewData["Title"] = "Finance App";
+    ViewData["Title"] = "All user data";
 }
 
-@if(TempData["SuccessMessage"] != null)
+<h1>@ViewData["Title"]</h1>
+@if(TempData["Success"] != null)
         { <div class="alert alert-success">@TempData["SuccessMessage"]</div> }
 @if(TempData["ErrorMessage"] != null)
 {
@@ -14,22 +15,20 @@
 <div class="container">
 @if (Model.UserData != null){
     <div class="text-center">
-    <h2 class="display-4">Welcome <b>@Model.UserData.UserName</b></h2>
+    <h2 class="display-4">User data</h2>
+        @foreach(var user in Model.UserData){ 
         <div>
-            <p>First Name: @Model.UserData.FirstName</p>
-            <p>Last Name: @Model.UserData.LastName</p>
-            <p>Email: @Model.UserData.Email</p>
-            <p>Accounts: @foreach (var accountNumber in Model.UserData.AccountNumbers)
+            <p>Username: @user.UserName</p>
+            <p>First Name: @user.FirstName</p>
+            <p>Last Name: @user.LastName</p>
+            <p>Email: @user.Email</p>
+            <p>Accounts: @foreach (var accountNumber in user.AccountNumbers)
                 {
                     @accountNumber<br>
                 }
             </p>
-            <p>
-            <a class="nav-link px-3" href="/UserAccount/EditUser">Edit user data.</a>
-            <a class="nav-link px-3" href="/Finance/CreateAccount">Create a bank account for the user</a>
-            or use the links on the left to add and view transactions.
-            </p>
         </div>
+        }
     </div>
 }
 else{

@@ -1,0 +1,45 @@
+@page
+@model EditUserModel
+@{
+    ViewData["Title"] = "Edit user";
+}
+
+
+    <div class="container">
+        <div class="row">
+            <form id="registerForm" method="post" asp-page-handler="Delete" class="col-md-4 mx-auto">
+                <div class="text-center mt-5" style="font-size: 20px;">
+                    <h2>@ViewData["Title"]</h2>
+                </div>
+                @{
+                if(TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+                }
+                else if(TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+                }
+                }
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="accordion">
+                    <div class="form-group">
+                        <label asp-for="FirstName"></label>
+                        <input asp-for="FirstName" class="form-control" autocomplete="off" />
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="LastName"></label>
+                        <input asp-for="LastName" class="form-control" autocomplete="off" />
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Email"></label>
+                        <input asp-for="Email" class="form-control" autocomplete="off" />
+                    </div>
+                    <div class="form-group text-center mt-2">
+                        <button id="edituser" type="submit" class="btn btn-outline-info">Edit personal data</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div><a  class="nav-link px-3" href="/UserAccount/DeleteUser">Delete user.</a></div>
+    </div>

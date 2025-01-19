@@ -93,8 +93,6 @@ public class AddTransactionModel : PageModel
                 selectedAccount.AccountNumber,
                 TransactionType
             );
-            Console.WriteLine("Id: " + transactionEntry.Id);
-            Console.WriteLine("Amount: " + transactionEntry.AmountMinorUnit);
             TempData["SuccessMessage"] = "Transaction completed successfully.";
         }
 
@@ -104,9 +102,3 @@ public class AddTransactionModel : PageModel
         return RedirectToPage();
     }
 }
-
-// public class TransactionFormModel
-// {
-//     public float Amount { get; set; }
-//     public TransactionType Type { get; set; }
-// }

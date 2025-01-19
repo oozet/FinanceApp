@@ -7,11 +7,13 @@
 
     <div class="container">
         <div class="row">
+            <div class="text-center mt-5" style="font-size: 20px;">
+                <h2>@ViewData["Title"]</h2>
+            </div>
+            <hr />
+            
+            @if(!User?.Identity?.IsAuthenticated ?? false){
             <form id="loginForm" method="post" class="col-md-4 mx-auto">
-                <div class="text-center mt-5" style="font-size: 20px;">
-                    <h2>@ViewData["Title"]</h2>
-                </div>
-                <hr />
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="accordion">
                     <div class="form-group">
@@ -34,6 +36,10 @@
                     <a class="nav-link px-3" href="/UserAccount/Register">Register user</a>
                 </div>
             </form>
+            }
+            else{
+                <div>Already logged in. <a class="nav-link px-3" href="/UserAccount/Logout">Sign out</a></div>
+            }
         </div>
     </div>
 
